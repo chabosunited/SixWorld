@@ -81,10 +81,14 @@
 
   function stat(n,l){ return `<div class="stat-card"><b>${n}</b><span>${l}</span></div>`; }
   function adminRow(img,title,sub,arr,id){
-    return `<div class="admin-row" data-edit="${id}" data-array="${arr}">
+    const active = editIds[arr]===id ? ' editing' : '';
+    return `<div class="admin-row${active}" data-edit="${id}" data-array="${arr}">
       <img src="${img||'assets/logo/sixworldlogo.png'}" alt="">
-      <div><b>${window.SIXWORLD.escapeHtml(title)}</b><small>${window.SIXWORLD.escapeHtml(sub||'')}</small></div>
-      <button data-delete="${id}" data-array="${arr}" title="Delete">×</button>
+      <div class="admin-row-copy"><b>${window.SIXWORLD.escapeHtml(title)}</b><small>${window.SIXWORLD.escapeHtml(sub||'')}</small></div>
+      <div class="admin-row-actions">
+        <button class="admin-edit-btn" data-edit-btn="${id}" data-array="${arr}" title="Edit">EDIT</button>
+        <button class="admin-delete-btn" data-delete="${id}" data-array="${arr}" title="Delete">×</button>
+      </div>
     </div>`;
   }
   function bindDeletes(){
@@ -98,7 +102,16 @@
     });
   }
   function bindSelects(key, cb){
-    $$(`.admin-row[data-array="${key}"]`, '#adminContent').forEach(row=>row.onclick=()=>cb(row.dataset.edit));
+    $$(`.admin-row[data-array="${key}"]`, '#adminContent').forEach(row=>row.onclick=e=>{
+      if(e.target.closest('[data-delete]')) return;
+      cb(row.dataset.edit);
+      requestAnimationFrame(()=>document.querySelector('.admin-section.editor-section')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    });
+    $$(`[data-edit-btn][data-array="${key}"]`, '#adminContent').forEach(btn=>btn.onclick=e=>{
+      e.stopPropagation();
+      cb(btn.dataset.editBtn);
+      requestAnimationFrame(()=>document.querySelector('.admin-section.editor-section')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    });
   }
   function setTab(next){ tab=next; renderTab(); }
 
@@ -133,8 +146,8 @@
       return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><input id="${key}_${f.name}" ${f.type?`type="${f.type}"`:''} value="${window.SIXWORLD.escapeHtml(current[f.name]||f.default||'')}"></div>`;
     }).join('');
     $('#adminContent').innerHTML = `
-      <section class="admin-section"><h3>${title}</h3><div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div></section>
-      <section class="admin-section"><h3>${editId?'Edit Selected':'Create New'}</h3><div class="admin-form">${formHtml}</div><div class="inline-actions"><button class="solid-btn" id="saveEntity">${editId?'UPDATE':'ADD NEW'}</button><button class="ghost-btn" id="newEntity">CLEAR / NEW</button></div></section>`;
+      <section class="admin-section"><div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Klicke auf einen Eintrag oder auf <b>EDIT</b>, um vorhandene Inhalte zu bearbeiten.</p></div></div><div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div></section>
+      <section class="admin-section editor-section"><h3>${editId?'Edit Selected':'Create New'}</h3>${editId?'<div class="editing-badge">EDIT MODE · vorhandener Inhalt</div>':''}<div class="admin-form">${formHtml}</div><div class="inline-actions"><button class="solid-btn" id="saveEntity">${editId?'UPDATE CONTENT':'ADD NEW'}</button><button class="ghost-btn" id="newEntity">CLEAR / NEW</button></div></section>`;
     bindDeletes();
     bindSelects(key,id=>{ editIds[key]=id; renderTab(); });
     $('#newEntity').onclick=()=>{ editIds[key]=null; renderTab(); };
@@ -143,8 +156,10 @@
       if(editIds[key]){
         const index=list.findIndex(x=>x.id===editIds[key]);
         if(index>-1) list[index] = {...list[index], ...values};
+        window.SIXWORLD.toast('Content updated. Click SAVE CHANGES to publish.');
       }else{
         list.unshift({id:uid(key.slice(0,1)), ...values});
+        window.SIXWORLD.toast('Content added. Click SAVE CHANGES to publish.');
       }
       editIds[key]=null; renderTab();
     };

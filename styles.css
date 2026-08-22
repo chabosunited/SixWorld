@@ -24,10 +24,17 @@ body{
   font-family:var(--font-body);
   color:var(--text);
   background:
-    radial-gradient(circle at 80% 6%, rgba(78,35,122,.22), transparent 22%),
-    radial-gradient(circle at 12% 12%, rgba(14,54,102,.18), transparent 24%),
-    linear-gradient(180deg,#06111d 0%, #081320 45%, #07101c 100%);
+    linear-gradient(rgba(5,10,19,.70),rgba(5,10,19,.82)),
+    url("assets/site-background.png") center center / cover fixed no-repeat;
   min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:radial-gradient(circle at 50% 15%,rgba(255,107,186,.08),transparent 34%),linear-gradient(180deg,rgba(5,10,19,.06),rgba(5,10,19,.30));
 }
 button,input,textarea,select{font:inherit}
 a{color:inherit}
@@ -45,7 +52,30 @@ img{max-width:100%;display:block}
   backdrop-filter:blur(18px);
   border-bottom:1px solid rgba(255,255,255,.04)
 }
-.brand img{width:226px; max-height:56px; object-fit:contain; object-position:left center}
+.brand{position:relative; display:inline-flex; align-items:center; isolation:isolate}
+.brand::before{
+  content:"";
+  position:absolute;
+  left:12px; top:50%;
+  width:190px; height:38px;
+  transform:translateY(-50%);
+  border-radius:999px;
+  background:radial-gradient(ellipse at center,rgba(255,79,163,.48) 0%,rgba(107,99,255,.22) 46%,transparent 75%);
+  filter:blur(15px);
+  opacity:.38;
+  z-index:-1;
+  animation:sixworldLogoPulse 3.4s ease-in-out infinite;
+}
+.brand img{position:relative; z-index:1; width:226px; max-height:56px; object-fit:contain; object-position:left center; filter:drop-shadow(0 0 7px rgba(255,79,163,.15))}
+.hero-logo{animation:sixworldHeroLogoGlow 4.2s ease-in-out infinite}
+@keyframes sixworldLogoPulse{
+  0%,100%{opacity:.28; transform:translateY(-50%) scale(.96)}
+  50%{opacity:.60; transform:translateY(-50%) scale(1.08)}
+}
+@keyframes sixworldHeroLogoGlow{
+  0%,100%{filter:drop-shadow(0 12px 28px rgba(0,0,0,.35)) drop-shadow(0 0 5px rgba(255,79,163,.08))}
+  50%{filter:drop-shadow(0 12px 28px rgba(0,0,0,.35)) drop-shadow(0 0 16px rgba(255,79,163,.28)) drop-shadow(0 0 26px rgba(66,230,238,.10))}
+}
 .nav{display:flex; justify-content:center; align-items:center; gap:50px; height:100%}
 .nav a{
   position:relative; display:flex; align-items:center; height:100%;
@@ -327,11 +357,19 @@ footer{display:flex; justify-content:space-between; gap:16px; padding:22px 36px 
 .admin-section{padding:22px; border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); margin-bottom:18px}
 .admin-section h3{margin:0 0 16px; font:900 26px/1 var(--font-display)}
 .admin-list{display:grid; gap:10px}
-.admin-row{display:grid; grid-template-columns:72px 1fr auto; gap:12px; align-items:center; padding:10px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05)}
+.admin-row{display:grid; grid-template-columns:72px 1fr auto; gap:12px; align-items:center; padding:10px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05); cursor:pointer; transition:.18s ease}
+.admin-row:hover{background:rgba(255,255,255,.055); border-color:rgba(255,79,163,.22)}
+.admin-row.editing{background:rgba(255,79,163,.09); border-color:rgba(255,79,163,.38); box-shadow:0 0 0 1px rgba(255,79,163,.08) inset}
 .admin-row img{width:72px; height:52px; object-fit:cover; border-radius:10px; background:#0c121d}
+.admin-row-copy{min-width:0}
 .admin-row b{display:block; margin-bottom:4px}
 .admin-row small{color:#8ea0b7; line-height:1.5}
-.admin-row button{width:34px; height:34px; border-radius:999px; border:0; font-size:22px; background:rgba(255,79,163,.18); color:#fff; cursor:pointer}
+.admin-row-actions{display:flex; align-items:center; gap:8px}
+.admin-row .admin-edit-btn{width:auto; min-width:58px; height:34px; padding:0 12px; border-radius:999px; border:1px solid rgba(66,230,238,.24); background:rgba(66,230,238,.09); color:var(--cyan); cursor:pointer; font:800 13px/1 var(--font-display); letter-spacing:.05em}
+.admin-row .admin-edit-btn:hover{background:rgba(66,230,238,.16)}
+.admin-row .admin-delete-btn{width:34px; height:34px; border-radius:999px; border:0; font-size:22px; background:rgba(255,79,163,.18); color:#fff; cursor:pointer}
+.editor-section{scroll-margin-top:24px}
+.editing-badge{display:inline-flex; margin:-4px 0 16px; padding:7px 10px; border-radius:999px; border:1px solid rgba(66,230,238,.22); background:rgba(66,230,238,.08); color:var(--cyan); font:800 12px/1 var(--font-display); letter-spacing:.08em}
 .admin-form{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
 .admin-field{display:grid; gap:8px}
 .admin-field.full{grid-column:1/-1}
