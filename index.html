@@ -9,23 +9,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
   <div class="noise"></div>
   <header class="topbar">
     <a class="brand" href="#home" aria-label="SIXWORLD Home"><img src="assets/logo/sixworldlogo.png" alt="SIXWORLD"></a>
-    <nav class="nav" aria-label="Hauptnavigation">
-      <a data-route="home" href="#home">HOME</a>
-      <a data-route="leaks" href="#leaks">LEAKS</a>
-      <a data-route="screenshots" href="#screenshots">SCREENSHOTS</a>
-      <a data-route="news" href="#news">NEWS</a>
-      <a data-route="map" href="#map">MAP</a>
-    </nav>
-    <div class="header-actions">
-      <label class="searchbox" aria-label="Suche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg><input id="globalSearch" type="search" placeholder="Search..." /></label>
-      <button class="round-btn" id="profileBtn" aria-label="Profil"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0m12-13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg></button>
+    <div class="header-menu" id="headerMenu">
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a data-route="home" href="#home">HOME</a>
+        <a data-route="leaks" href="#leaks">LEAKS</a>
+        <a data-route="screenshots" href="#screenshots">SCREENSHOTS</a>
+        <a data-route="news" href="#news">NEWS</a>
+        <a data-route="map" href="#map">MAP</a>
+      </nav>
+      <div class="header-actions">
+        <label class="searchbox" aria-label="Suche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg><input id="globalSearch" type="search" placeholder="Search..." /></label>
+        <button class="round-btn" id="profileBtn" aria-label="Profil"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0m12-13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg></button>
+      </div>
     </div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menü öffnen" aria-expanded="false" aria-controls="headerMenu">
+      <span></span><span></span><span></span>
+    </button>
   </header>
 
   <main id="app">
@@ -157,7 +162,7 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="js/app.js?v=4" defer></script>
-  <script src="js/admin.js?v=4" defer></script>
+  <script src="js/app.js?v=5" defer></script>
+  <script src="js/admin.js?v=5" defer></script>
 </body>
 </html>

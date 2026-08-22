@@ -287,12 +287,30 @@
     openModal('lightbox');
   }
 
+  function setMobileMenu(open){
+    const menu=$('#headerMenu'), btn=$('#mobileMenuBtn');
+    if(!menu||!btn) return;
+    menu.classList.toggle('open',!!open);
+    btn.classList.toggle('open',!!open);
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.setAttribute('aria-label',open?'Menü schließen':'Menü öffnen');
+  }
+  $('#mobileMenuBtn')?.addEventListener('click',e=>{
+    e.stopPropagation();
+    setMobileMenu(!$('#headerMenu').classList.contains('open'));
+  });
+  $('#headerMenu')?.addEventListener('click',e=>e.stopPropagation());
+  document.addEventListener('click',()=>{ if(matchMedia('(max-width:920px)').matches) setMobileMenu(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') setMobileMenu(false); });
+  addEventListener('resize',()=>{ if(!matchMedia('(max-width:920px)').matches) setMobileMenu(false); });
+
   function route(){
     const r=(location.hash||'#home').slice(1).split('?')[0];
     const valid=['home','leaks','screenshots','news','map'];
     const page=valid.includes(r)?r:'home';
     $$('.page').forEach(p=>p.classList.toggle('active', p.dataset.page===page));
     $$('.nav a').forEach(a=>a.classList.toggle('active', a.dataset.route===page));
+    setMobileMenu(false);
     window.scrollTo({top:0,behavior:'instant'});
   }
   addEventListener('hashchange', route);

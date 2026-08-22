@@ -67,6 +67,12 @@ img{max-width:100%;display:block}
   animation:sixworldLogoPulse 3.4s ease-in-out infinite;
 }
 .brand img{position:relative; z-index:1; width:226px; max-height:56px; object-fit:contain; object-position:left center; filter:drop-shadow(0 0 7px rgba(255,79,163,.15))}
+.header-menu{display:contents}
+.mobile-menu-btn{display:none;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);align-items:center;justify-content:center;flex-direction:column;gap:5px;cursor:pointer;color:#fff}
+.mobile-menu-btn span{display:block;width:21px;height:2px;border-radius:999px;background:currentColor;transition:transform .22s ease,opacity .22s ease}
+.mobile-menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.mobile-menu-btn.open span:nth-child(2){opacity:0}
+.mobile-menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .hero-logo{animation:sixworldHeroLogoGlow 4.2s ease-in-out infinite}
 @keyframes sixworldLogoPulse{
   0%,100%{opacity:.28; transform:translateY(-50%) scale(.96)}
@@ -275,13 +281,13 @@ main{padding:0 36px 40px}
 .chip.active{background:rgba(255,79,163,.16); border-color:rgba(255,79,163,.32); color:#fff}
 .map-shell{display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:18px}
 .map-viewport{
-  position:relative; min-height:720px; overflow:hidden; cursor:grab;
+  position:relative; min-height:780px; height:min(82vh,900px); overflow:hidden; cursor:grab;
   border-radius:20px; border:1px solid rgba(255,255,255,.08);
   background:radial-gradient(circle at 20% 0%, rgba(22,42,70,.6), rgba(8,14,25,.98))
 }
 .map-viewport.dragging{cursor:grabbing}
-.map-stage{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); transform-origin:center center}
-.map-stage img{width:min(1000px,88vw); max-width:none; user-select:none; -webkit-user-drag:none}
+.map-stage{position:absolute; left:50%; top:50%; display:inline-block; transform:translate(-50%,-50%); transform-origin:center center}
+.map-stage img{height:min(82vh,920px); width:auto; max-width:none; user-select:none; -webkit-user-drag:none}
 #mapBlips{position:absolute; inset:0}
 .map-blip,.edit-blip{
   position:absolute; transform:translate(-50%,-50%); z-index:3;
@@ -377,9 +383,9 @@ footer{display:flex; justify-content:space-between; gap:16px; padding:22px 36px 
 .admin-field input,.admin-field select{height:46px; padding:0 14px}
 .admin-field textarea{min-height:110px; padding:14px; resize:vertical}
 .admin-add{margin-top:16px}
-.map-editor-layout{display:grid; grid-template-columns:minmax(0,1.2fr) minmax(300px,.9fr); gap:18px}
-.map-editor-preview{position:relative; min-height:560px; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.08); background:#07111d}
-.map-editor-preview img{width:100%; height:100%; object-fit:contain; display:block}
+.map-editor-layout{display:grid; grid-template-columns:minmax(430px,.95fr) minmax(320px,1.05fr); gap:22px; align-items:start}
+.map-editor-preview{position:relative; width:auto; height:min(64vh,620px); aspect-ratio:2590/3240; max-width:100%; margin:0 auto; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.08); background:#07111d}
+.map-editor-preview img{width:100%; height:100%; object-fit:fill; display:block}
 .edit-blip.selected{box-shadow:0 0 0 4px rgba(255,255,255,.18), 0 8px 18px rgba(0,0,0,.4)}
 .blip-list{display:grid; gap:8px; margin-top:16px}
 .blip-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); cursor:pointer}
@@ -399,9 +405,19 @@ footer{display:flex; justify-content:space-between; gap:16px; padding:22px 36px 
   .nav{gap:28px}
 }
 @media (max-width:920px){
-  .topbar{grid-template-columns:1fr; height:auto; padding:16px 18px; gap:14px}
-  .nav{justify-content:flex-start; overflow:auto; gap:18px; height:auto}
-  .header-actions{justify-content:flex-start}
+  .topbar{grid-template-columns:1fr auto; height:74px; padding:0 18px; gap:12px; overflow:visible}
+  .brand{position:relative;z-index:52}
+  .brand img{width:205px;max-height:50px}
+  .mobile-menu-btn{display:flex;position:relative;z-index:53}
+  .header-menu{display:none;position:absolute;left:12px;right:12px;top:66px;z-index:51;padding:16px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(7,13,24,.97);backdrop-filter:blur(20px);box-shadow:0 22px 55px rgba(0,0,0,.42)}
+  .header-menu.open{display:block;animation:mobileMenuIn .2s ease}
+  .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch;gap:8px;height:auto;margin-bottom:14px;overflow:visible}
+  .nav a{height:44px;padding:0 12px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);justify-content:flex-start;font-size:18px}
+  .nav a.active{background:rgba(255,79,163,.1);border-color:rgba(255,79,163,.22)}
+  .nav a.active::after{display:none}
+  .header-actions{display:grid;grid-template-columns:minmax(0,1fr) 44px;justify-content:stretch;gap:10px}
+  .searchbox{width:100%;height:44px}
+  .round-btn{width:44px;height:44px}
   main{padding:0 18px 28px}
   .hero{min-height:460px}
   .hero-content{width:100%; padding:34px 22px 70px}
@@ -412,6 +428,12 @@ footer{display:flex; justify-content:space-between; gap:16px; padding:22px 36px 
   .news-item{grid-template-columns:1fr}
   .news-item .arrow{border-left:0; border-top:1px solid rgba(255,255,255,.06); height:52px}
   .admin-overlay.open{grid-template-columns:1fr}
+  .map-viewport{min-height:560px;height:70vh}
+  .map-stage img{height:min(67vh,650px);width:auto}
+  .map-editor-layout{grid-template-columns:1fr}
+  .map-editor-preview{height:min(58vh,520px);width:auto;max-width:100%}
   .admin-nav{display:none}
   footer{flex-direction:column; padding:20px 18px 28px}
 }
+
+@keyframes mobileMenuIn{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
