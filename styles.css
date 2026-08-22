@@ -776,3 +776,64 @@ footer{align-items:center;border-top:1px solid rgba(220,228,241,.08)}
   .map-legend-reference{border-radius:22px!important;padding:17px}
   .legend-ref-item{min-width:calc(50% - 12px);font-size:13px}
 }
+
+/* ===== SIXWORLD v11: wider map layout, darker glass, custom map icon system ===== */
+body{
+  background:
+    linear-gradient(rgba(4,9,18,.90),rgba(4,9,18,.90)),
+    url("assets/site-background.png") center center / cover fixed no-repeat;
+}
+body::before{
+  background:radial-gradient(circle at 50% 10%,rgba(255,79,163,.035),transparent 30%),linear-gradient(180deg,rgba(3,7,14,.08),rgba(3,7,14,.18));
+}
+.topbar{background:rgba(4,9,18,.91)}
+.silver-box{background:linear-gradient(180deg,rgba(5,13,25,.985),rgba(4,11,22,.985))}
+
+.map-custom-icon,.map-fact-icon,.map-zoom svg{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.map-custom-icon{width:21px;height:21px;display:block}
+.map-filter-icon .map-custom-icon{width:23px;height:23px}
+.map-filter-btn .map-filter-icon{color:#d8dee9}
+.map-filter-btn.active .map-filter-icon{color:var(--pink)}
+.map-blip .map-custom-icon{width:17px;height:17px;color:#fff}
+.legend-pin .map-custom-icon{width:17px;height:17px;color:#fff}
+.recent-cat .map-custom-icon{width:11px;height:11px;color:#fff}
+.map-fact-icon{width:15px;height:15px;flex:none;color:#929eb1}
+.map-facts span{display:flex!important;align-items:center;gap:7px}
+
+.map-zoom button{display:grid;place-items:center;color:#f2f5fa;cursor:pointer;touch-action:manipulation;transition:background .16s ease,color .16s ease,box-shadow .16s ease}
+.map-zoom button:hover,.map-zoom button.active{background:rgba(255,79,163,.12);color:var(--pink)}
+.map-zoom svg{width:22px;height:22px;pointer-events:none}
+#mapBlips{transition:opacity .18s ease}
+#mapBlips.markers-hidden{opacity:0;pointer-events:none}
+
+#mapViewport:fullscreen{
+  width:100vw!important;height:100vh!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important;background:#020814;
+}
+#mapViewport:fullscreen .map-stage{width:100%!important;height:100%!important;max-width:none!important}
+#mapViewport:fullscreen .map-stage img{width:100%!important;height:100%!important;object-fit:contain!important}
+#mapViewport:fullscreen .map-zoom{right:24px;bottom:24px}
+
+@media (min-width:1501px){
+  .map-page{margin-left:-10px;margin-right:-10px}
+  .map-reference-layout{
+    width:100%;
+    grid-template-columns:270px minmax(0,1fr) 360px;
+    justify-content:stretch;
+    gap:12px;
+  }
+  .map-center-column{max-width:none;width:100%}
+  .map-filter-panel{padding:18px 16px}
+  .map-info-panel{width:100%}
+}
+
+@media (min-width:1181px) and (max-width:1500px){
+  .map-reference-layout{grid-template-columns:235px minmax(0,1fr) 320px;gap:12px}
+  .map-center-column{max-width:none;width:100%}
+}
+.edit-blip .map-custom-icon{width:17px;height:17px;color:#fff;margin:auto}

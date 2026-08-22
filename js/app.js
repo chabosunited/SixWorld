@@ -231,13 +231,36 @@
   function getMapCategories(){ return app.content.map?.categories || []; }
 
   const mapCategoryStyle={
-    district:{icon:'▦',label:'Districts'}, landmark:{icon:'★',label:'Landmarks'}, activity:{icon:'⚑',label:'Activities'},
-    shop:{icon:'▣',label:'Shops'}, safehouse:{icon:'⌂',label:'Safehouses'}, secret:{icon:'◇',label:'Secrets'}, transport:{icon:'▰',label:'Transport'}
+    district:{label:'Districts'}, landmark:{label:'Landmarks'}, activity:{label:'Activities'},
+    shop:{label:'Shops'}, safehouse:{label:'Safehouses'}, secret:{label:'Secrets'}, transport:{label:'Transport'}
   };
+
+  const mapIconPaths={
+    district:'<path d="M4 20V8l4-2v14M10 20V4h6v16M18 20v-9l3 2v7M3 20h19"/><path d="M12 7h2M12 10h2M12 13h2M6 11h1M6 14h1M19 15h1"/>',
+    landmark:'<path d="m12 3 2.75 5.57 6.15.9-4.45 4.33 1.05 6.12L12 17.02l-5.5 2.9 1.05-6.12L3.1 9.47l6.15-.9L12 3Z"/>',
+    activity:'<circle cx="13" cy="5" r="2"/><path d="m9 21 2.5-6-3-2 2.2-4 3.3 2 3.5-1.5M13 12l3 3 4 1M8.5 13 5 17"/>',
+    shop:'<path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>',
+    safehouse:'<path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/>',
+    secret:'<path d="m12 3 8 9-8 9-8-9 8-9Z"/><path d="m8 12 3 3 5-6"/>',
+    transport:'<rect x="5" y="3" width="14" height="15" rx="3"/><path d="M7 8h10M8 18v3M16 18v3M8 13h.01M16 13h.01"/>'
+  };
+  function mapIconSvg(category, extraClass=''){
+    const key=mapClass(category);
+    return `<svg class="map-custom-icon ${extraClass}" viewBox="0 0 24 24" aria-hidden="true">${mapIconPaths[key]||mapIconPaths.landmark}</svg>`;
+  }
+  function factIconSvg(type){
+    const paths={
+      region:'<path d="M12 22s7-6.4 7-13a7 7 0 1 0-14 0c0 6.6 7 13 7 13Z"/><circle cx="12" cy="9" r="2.3"/>',
+      district:mapIconPaths.district,
+      poi:'<path d="m12 3 7 4v7c0 4-3 6-7 7-4-1-7-3-7-7V7l7-4Z"/><path d="m9 12 2 2 4-5"/>',
+      date:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'
+    };
+    return `<svg class="map-fact-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[type]||paths.poi}</svg>`;
+  }
 
   function renderMapFilters(){
     const filters=getMapCategories();
-    $('#mapFilters').innerHTML=filters.map((f,i)=>`<button class="map-filter-btn ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}"><span class="map-filter-icon ${mapClass(f.key)}">${escapeHtml(f.icon||mapCategoryStyle[f.key]?.icon||'•')}</span><span>${escapeHtml(f.label||f.key)}</span></button>`).join('');
+    $('#mapFilters').innerHTML=filters.map((f,i)=>`<button class="map-filter-btn ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}"><span class="map-filter-icon ${mapClass(f.key)}">${mapIconSvg(f.key)}</span><span>${escapeHtml(f.label||f.key)}</span></button>`).join('');
     $$('.map-filter-btn[data-map-filter]').forEach(b=>b.onclick=()=>{
       const already=b.classList.contains('active');
       $$('.map-filter-btn').forEach(x=>x.classList.remove('active'));
@@ -248,7 +271,7 @@
   }
 
   function renderMapLegend(){
-    $('#mapLegend').innerHTML=getMapCategories().filter(x=>x.key!=='district').map(cat=>`<div class="legend-ref-item"><i class="legend-pin ${mapClass(cat.key)}">${escapeHtml(cat.short||cat.icon||'•')}</i><span>${escapeHtml(cat.legend||cat.label||cat.key)}</span></div>`).join('');
+    $('#mapLegend').innerHTML=getMapCategories().filter(x=>x.key!=='district').map(cat=>`<div class="legend-ref-item"><i class="legend-pin ${mapClass(cat.key)}">${mapIconSvg(cat.key,'legend-icon')}</i><span>${escapeHtml(cat.legend||cat.label||cat.key)}</span></div>`).join('');
   }
 
   function mapTagsHtml(tags=[]){ return tags.slice(0,4).map(t=>`<span>${escapeHtml(t)}</span>`).join(''); }
@@ -263,10 +286,10 @@
     $('#mapDetailDescription').textContent=blip.description||'No description yet.';
     $('#mapDetailTags').innerHTML=mapTagsHtml(blip.tags||[mapCategoryStyle[blip.category]?.label||blip.category]);
     $('#mapDetailFacts').innerHTML=`
-      <div><span>⌖ &nbsp; REGION</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
-      <div><span>▦ &nbsp; DISTRICT</span><b>${escapeHtml(blip.district||'—')}</b></div>
-      <div><span>◇ &nbsp; POINTS OF INTEREST</span><b>${escapeHtml(blip.poiCount??'—')}</b></div>
-      <div><span>▣ &nbsp; DISCOVERED</span><b>${escapeHtml(blip.discovered||'—')}</b></div>`;
+      <div><span>${factIconSvg('region')} REGION</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
+      <div><span>${factIconSvg('district')} DISTRICT</span><b>${escapeHtml(blip.district||'—')}</b></div>
+      <div><span>${factIconSvg('poi')} POINTS OF INTEREST</span><b>${escapeHtml(blip.poiCount??'—')}</b></div>
+      <div><span>${factIconSvg('date')} DISCOVERED</span><b>${escapeHtml(blip.discovered||'—')}</b></div>`;
     $('#mapFeaturedBadge').style.display=blip.featured?'inline-flex':'none';
     $$('.map-blip').forEach(x=>x.classList.toggle('selected',String(x.dataset.id)===String(blip.id)));
     $$('.recent-card').forEach(x=>x.classList.toggle('selected',String(x.dataset.blipId)===String(blip.id)));
@@ -274,7 +297,7 @@
 
   function renderRecentDiscovered(){
     const items=(app.content.map?.blips||[]).filter(x=>x.image).slice(-6).reverse();
-    $('#recentDiscovered').innerHTML=items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${escapeHtml(mapCategoryStyle[b.category]?.icon||'•')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('');
+    $('#recentDiscovered').innerHTML=items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${mapIconSvg(b.category,'recent-icon')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('');
     $$('.recent-card').forEach(card=>card.onclick=()=>{ const b=(app.content.map.blips||[]).find(x=>String(x.id)===card.dataset.blipId); if(b) updateMapDetail(b); });
   }
 
@@ -283,7 +306,7 @@
     $('#mapImage').src=m.image||'assets/InteractiveMap/GTA6MAP.png';
     const logo=$('.leonida-map-logo'); if(logo) logo.src=m.logo||'assets/logo/Leonidaloga.png';
     $('#mapUpdatedDate').textContent=(m.updatedDate||'May 12, 2025').toUpperCase();
-    $('#mapBlips').innerHTML=(m.blips||[]).map(b=>`<button class="map-blip ${mapClass(b.category)}" data-id="${escapeHtml(b.id)}" data-category="${escapeHtml(b.category||'landmark')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%"><span>${escapeHtml(b.symbol||mapCategoryStyle[b.category]?.icon||'•')}</span></button>`).join('');
+    $('#mapBlips').innerHTML=(m.blips||[]).map(b=>`<button class="map-blip ${mapClass(b.category)}" data-id="${escapeHtml(b.id)}" data-category="${escapeHtml(b.category||'landmark')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%"><span>${mapIconSvg(b.category,'blip-icon')}</span></button>`).join('');
     renderMapFilters();
     renderMapLegend();
     renderRecentDiscovered();
@@ -386,24 +409,42 @@
   }
   addEventListener('hashchange', route);
 
-  let mapScale=1, mapX=0, mapY=0, drag=false, sx=0, sy=0;
-  function applyMap(){ $('#mapStage').style.transform=`translate(calc(-50% + ${mapX}px), calc(-50% + ${mapY}px)) scale(${mapScale})`; }
+  let mapScale=1, mapX=0, mapY=0, drag=false, sx=0, sy=0, mapMarkersVisible=true;
+  function applyMap(){ const stage=$('#mapStage'); if(stage) stage.style.transform=`translate(calc(-50% + ${mapX}px), calc(-50% + ${mapY}px)) scale(${mapScale})`; }
   function resetMap(){ mapScale=1; mapX=0; mapY=0; applyMap(); }
-  $('#zoomIn').onclick=()=>{ mapScale=Math.min(3,mapScale+.2); applyMap(); };
-  $('#zoomOut').onclick=()=>{ mapScale=Math.max(.65,mapScale-.2); applyMap(); };
-  $('#zoomReset').onclick=resetMap;
-  $('#zoomFullscreen')?.addEventListener('click',()=>{
-    const viewport=$('#mapViewport');
-    if(!document.fullscreenElement) viewport?.requestFullscreen?.(); else document.exitFullscreen?.();
+  function bindMapTool(selector,handler){
+    const el=$(selector); if(!el) return;
+    el.addEventListener('pointerdown',e=>{e.stopPropagation();});
+    el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();handler(el);});
+  }
+  bindMapTool('#zoomIn',()=>{mapScale=Math.min(3,mapScale+.2);applyMap();});
+  bindMapTool('#zoomOut',()=>{mapScale=Math.max(.65,mapScale-.2);applyMap();});
+  bindMapTool('#mapLayers',el=>{
+    mapMarkersVisible=!mapMarkersVisible;
+    const layer=$('#mapBlips');
+    if(layer){layer.classList.toggle('markers-hidden',!mapMarkersVisible);layer.setAttribute('aria-hidden',mapMarkersVisible?'false':'true');}
+    el.classList.toggle('active',!mapMarkersVisible);
+    el.title=mapMarkersVisible?'Hide map markers':'Show map markers';
   });
+  bindMapTool('#zoomFullscreen',async el=>{
+    const viewport=$('#mapViewport'); if(!viewport) return;
+    try{
+      if(!document.fullscreenElement) await viewport.requestFullscreen?.();
+      else await document.exitFullscreen?.();
+    }catch(err){ toast('Fullscreen is not available in this browser.'); }
+  });
+  document.addEventListener('fullscreenchange',()=>$('#zoomFullscreen')?.classList.toggle('active',!!document.fullscreenElement));
   $('#mapResetFilters')?.addEventListener('click',()=>{
     $$('.map-filter-btn').forEach(x=>x.classList.remove('active'));
     $$('.map-blip').forEach(x=>x.classList.remove('hidden'));
+    mapMarkersVisible=true;
+    $('#mapBlips')?.classList.remove('markers-hidden');
+    $('#mapLayers')?.classList.remove('active');
     resetMap();
   });
   $('#mapInfoClose')?.addEventListener('click',()=>$('#mapInfoPanel')?.classList.toggle('collapsed'));
   $('#mapViewport').addEventListener('wheel',e=>{ e.preventDefault(); mapScale=Math.min(3,Math.max(.65,mapScale+(e.deltaY<0?.12:-.12))); applyMap(); }, {passive:false});
-  $('#mapViewport').addEventListener('pointerdown',e=>{ if(e.target.closest('.map-blip')) return; drag=true; sx=e.clientX-mapX; sy=e.clientY-mapY; $('#mapViewport').classList.add('dragging'); e.currentTarget.setPointerCapture(e.pointerId); });
+  $('#mapViewport').addEventListener('pointerdown',e=>{ if(e.target.closest('.map-blip,.map-zoom')) return; drag=true; sx=e.clientX-mapX; sy=e.clientY-mapY; $('#mapViewport').classList.add('dragging'); e.currentTarget.setPointerCapture(e.pointerId); });
   $('#mapViewport').addEventListener('pointermove',e=>{ if(!drag) return; mapX=e.clientX-sx; mapY=e.clientY-sy; applyMap(); });
   $('#mapViewport').addEventListener('pointerup',()=>{ drag=false; $('#mapViewport').classList.remove('dragging'); });
 

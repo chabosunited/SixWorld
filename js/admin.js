@@ -8,6 +8,18 @@
   let selectedBlipId=null;
   let activeEntityConfig=null;
 
+
+  const adminMapIconPaths={
+    district:'<path d="M4 20V8l4-2v14M10 20V4h6v16M18 20v-9l3 2v7M3 20h19"/><path d="M12 7h2M12 10h2M12 13h2M6 11h1M6 14h1M19 15h1"/>',
+    landmark:'<path d="m12 3 2.75 5.57 6.15.9-4.45 4.33 1.05 6.12L12 17.02l-5.5 2.9 1.05-6.12L3.1 9.47l6.15-.9L12 3Z"/>',
+    activity:'<circle cx="13" cy="5" r="2"/><path d="m9 21 2.5-6-3-2 2.2-4 3.3 2 3.5-1.5M13 12l3 3 4 1M8.5 13 5 17"/>',
+    shop:'<path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>',
+    safehouse:'<path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/>',
+    secret:'<path d="m12 3 8 9-8 9-8-9 8-9Z"/><path d="m8 12 3 3 5-6"/>',
+    transport:'<rect x="5" y="3" width="14" height="15" rx="3"/><path d="M7 8h10M8 18v3M16 18v3M8 13h.01M16 13h.01"/>'
+  };
+  function adminMapIconSvg(category){const k=adminMapIconPaths[category]?category:'landmark';return `<svg class="map-custom-icon blip-icon" viewBox="0 0 24 24" aria-hidden="true">${adminMapIconPaths[k]}</svg>`;}
+
   const titles={
     dashboard:'Overview', hero:'Hero Slides', leaks:'Leaks / Videos', screens:'Screenshots',
     news:'News', map:'Interactive Map', settings:'Settings', access:'Access'
@@ -369,7 +381,7 @@
         </div>
         <div class="map-editor-layout" style="margin-top:18px">
           <div>
-            <div class="map-editor-preview" id="mapEditPreview"><img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</button>`).join('')}</div>
+            <div class="map-editor-preview" id="mapEditPreview"><img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${adminMapIconSvg(b.category)}</button>`).join('')}</div>
             <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW LOCATION</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
             <p class="inline-note">Klicke auf eine freie Stelle der Map, um eine Location anzulegen. Ziehe vorhandene Marker per Drag an die gewünschte Position.</p>
             <div class="blip-list">${blips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
@@ -412,7 +424,7 @@
       b.region=$('#bRegion').value;b.district=$('#bDistrict').value;b.poiCount=+$('#bPoiCount').value||0;b.discovered=$('#bDiscovered').value;
       b.tags=$('#bTags').value.split(',').map(x=>x.trim()).filter(Boolean);b.description=$('#bDesc').value;b.link=$('#bLink').value;
       b.x=+$('#bX').value;b.y=+$('#bY').value;b.featured=$('#bFeatured').value==='true';
-      const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.textContent=b.symbol;el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
+      const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.innerHTML=adminMapIconSvg(b.category);el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
     }
     ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
     $$('.blip-item').forEach(item=>item.onclick=()=>{selectedBlipId=item.dataset.pickBlip;renderMap()});

@@ -1,4 +1,14 @@
-# SIXWORLD v9 — Map Reference Update
+# SIXWORLD v11
+
+## Änderungen in v11
+
+- Map-Seite auf Desktop breiter und randfüllender: linkes Filterpanel und rechtes Detailpanel wurden vergrößert, die mittlere Karte nutzt den verfügbaren Platz.
+- Website-Hintergrund jetzt mit 90% dunkel-navy Overlay; das Hintergrundbild bleibt nur noch dezent sichtbar.
+- Komplett eigenes SVG-Icon-System für Districts, Landmarks, Activities, Shops, Safehouses, Secrets und Transport.
+- Eigene Icons werden in Filtern, Blips, Legende, Recently Discovered und im Admin-Map-Editor verwendet.
+- Map-Toolbar repariert: Plus/Minus zoomen per Klick, Layers blendet Marker ein/aus, Fullscreen schaltet die Karte in Vollbild.
+- Map-Tool-Klicks starten nicht mehr versehentlich den Drag-Modus.
+- Cache-Buster auf v11 erhöht.
 
 Diese Version baut auf dem funktionierenden v8 Admin-Editor auf und enthält das neue Map-Layout sowie die neuen Assets.
 
