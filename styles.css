@@ -837,3 +837,112 @@ body::before{
   .map-center-column{max-width:none;width:100%}
 }
 .edit-blip .map-custom-icon{width:17px;height:17px;color:#fff;margin:auto}
+
+/* ===== SIXWORLD v12 map zoom stability + admin zoom editor ===== */
+.map-reference-viewport,
+.map-editor-preview{
+  touch-action:none;
+  overscroll-behavior:contain;
+}
+.map-reference-viewport .map-stage,
+.admin-map-stage{
+  transform-origin:center center;
+  will-change:transform;
+}
+.map-reference-viewport .map-stage>img,
+.admin-map-stage>img{
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+}
+.map-blip,
+.edit-blip{
+  transform:translate(-50%,-50%);
+  transform-origin:center center;
+  will-change:transform;
+}
+
+/* Admin editor: fixed viewport, transformable map stage and fixed toolbar. */
+.map-editor-preview{
+  position:relative;
+  overflow:hidden;
+  cursor:grab;
+  background:#030918;
+  aspect-ratio:2048/1402;
+  max-width:860px;
+  max-height:none;
+}
+.map-editor-preview.dragging{cursor:grabbing}
+.admin-map-stage{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:100%;
+  height:100%;
+  transform:translate(-50%,-50%) scale(1);
+}
+.admin-map-stage>img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  background:#030918;
+}
+.admin-map-blips{position:absolute;inset:0}
+.admin-map-toolbar{
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  z-index:20;
+  display:grid;
+  grid-template-columns:44px;
+  gap:0;
+  overflow:hidden;
+  border:1px solid var(--silver-line);
+  border-radius:10px;
+  background:rgba(4,10,18,.9);
+  box-shadow:0 8px 24px rgba(0,0,0,.32);
+}
+.admin-map-toolbar button{
+  width:44px;
+  height:44px;
+  border:0;
+  border-bottom:1px solid rgba(220,228,241,.12);
+  background:transparent;
+  color:#f2f5fa;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font:800 19px/1 var(--font-display);
+}
+.admin-map-toolbar button:last-child{border-bottom:0}
+.admin-map-toolbar button:hover{background:rgba(255,79,163,.12);color:var(--pink)}
+.admin-map-zoom-label{
+  position:absolute;
+  left:12px;
+  bottom:12px;
+  z-index:20;
+  padding:7px 10px;
+  border-radius:8px;
+  border:1px solid var(--silver-line);
+  background:rgba(4,10,18,.84);
+  color:#aeb9c9;
+  font:700 11px/1 var(--font-display);
+  letter-spacing:.04em;
+  pointer-events:none;
+}
+.admin-map-help{margin-top:8px!important}
+
+/* Prevent browser-native dragging/selection of public media while navigating the map. */
+#mapViewport,
+#mapViewport *{
+  -webkit-touch-callout:none;
+}
+#mapImage{pointer-events:none}
+
+@media (max-width:920px){
+  .admin-map-toolbar{right:8px;bottom:8px;grid-template-columns:40px}
+  .admin-map-toolbar button{width:40px;height:40px}
+  .admin-map-zoom-label{left:8px;bottom:8px}
+}

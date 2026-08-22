@@ -447,6 +447,19 @@
   $('#mapViewport').addEventListener('pointerdown',e=>{ if(e.target.closest('.map-blip,.map-zoom')) return; drag=true; sx=e.clientX-mapX; sy=e.clientY-mapY; $('#mapViewport').classList.add('dragging'); e.currentTarget.setPointerCapture(e.pointerId); });
   $('#mapViewport').addEventListener('pointermove',e=>{ if(!drag) return; mapX=e.clientX-sx; mapY=e.clientY-sy; applyMap(); });
   $('#mapViewport').addEventListener('pointerup',()=>{ drag=false; $('#mapViewport').classList.remove('dragging'); });
+  $('#mapViewport').addEventListener('pointercancel',()=>{ drag=false; $('#mapViewport').classList.remove('dragging'); });
+  $('#mapImage')?.addEventListener('dragstart',e=>e.preventDefault());
+
+  // Public content protection: suppress the browser context menu and native media dragging.
+  // This only discourages casual downloads; browser-delivered assets can never be made impossible to save.
+  document.addEventListener('contextmenu',e=>{
+    if(e.target.closest('#adminOverlay')) return;
+    e.preventDefault();
+  });
+  document.addEventListener('dragstart',e=>{
+    if(e.target.closest('#adminOverlay')) return;
+    if(e.target.closest('img,video,a')) e.preventDefault();
+  });
 
   $('#globalSearch').addEventListener('input',e=>{
     const q=e.target.value.trim().toLowerCase();

@@ -72,3 +72,10 @@ Deine bereits vorhandenen Inhalte bleiben erhalten. Beim Laden werden alte Asset
   - Map Legend card below the selected location
   - desktop Recently Discovered carousel hidden on mobile for a cleaner reference-style layout
 - Mobile Filters button expands/collapses the full filter set.
+## v12 changes
+
+- Admin Interactive Map now supports wheel zoom and + / - / reset controls.
+- Admin map can be panned while zoomed; a short click on an empty map position creates a new location.
+- Map markers live inside the transformed map stage, so marker size and position scale together with the map in public and admin views.
+- Browser-native dragging of the public map image is disabled so map panning no longer drags the image file.
+- Public right-click/context menu and casual media dragging are disabled as a deterrent against simple asset saving. This is not DRM and cannot technically prevent a determined visitor from saving browser-delivered assets.

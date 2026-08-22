@@ -7,6 +7,7 @@
   let editIds={hero:null, leaks:null, screens:null, news:null};
   let selectedBlipId=null;
   let activeEntityConfig=null;
+  let adminMapScale=1, adminMapX=0, adminMapY=0;
 
 
   const adminMapIconPaths={
@@ -372,7 +373,7 @@
     $('#adminContent').innerHTML=`
       <section class="admin-section">
         <h3>Map Setup</h3>
-        <p class="inline-note">Neue Leonida Map im Referenz-Layout. Hier verwaltest du Map-Bild, Logo, Locations, Detailkarten und Recently Discovered.</p>
+        <p class="inline-note">Zoome mit Mausrad oder + / − in die Map. Ziehe die Map zum Verschieben. Ein kurzer Klick auf eine freie Stelle setzt eine neue Location.</p>
         <div class="admin-form" style="margin-top:14px">
           <div class="admin-field"><label>MAP IMAGE PATH / URL</label><input id="mapImageInput" value="${window.SIXWORLD.escapeHtml(draft.map.image||'assets/InteractiveMap/GTA6MAP.png')}"></div>
           <div class="admin-field"><label>LEONIDA LOGO PATH / URL</label><input id="mapLogoInput" value="${window.SIXWORLD.escapeHtml(draft.map.logo||'assets/logo/Leonidaloga.png')}"></div>
@@ -381,9 +382,20 @@
         </div>
         <div class="map-editor-layout" style="margin-top:18px">
           <div>
-            <div class="map-editor-preview" id="mapEditPreview"><img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${adminMapIconSvg(b.category)}</button>`).join('')}</div>
+            <div class="map-editor-preview" id="mapEditPreview">
+              <div class="admin-map-stage" id="adminMapStage">
+                <img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="" draggable="false">
+                <div class="admin-map-blips">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${adminMapIconSvg(b.category)}</button>`).join('')}</div>
+              </div>
+              <div class="admin-map-toolbar" aria-label="Admin map tools">
+                <button id="adminZoomIn" type="button" title="Zoom in">+</button>
+                <button id="adminZoomOut" type="button" title="Zoom out">−</button>
+                <button id="adminZoomReset" type="button" title="Reset map">⌖</button>
+              </div>
+              <div class="admin-map-zoom-label" id="adminMapZoomLabel">100%</div>
+            </div>
             <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW LOCATION</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
-            <p class="inline-note">Klicke auf eine freie Stelle der Map, um eine Location anzulegen. Ziehe vorhandene Marker per Drag an die gewünschte Position.</p>
+            <p class="inline-note admin-map-help">Marker und Icons liegen direkt auf der Map und skalieren beim Zoomen proportional mit. So bleiben sie exakt an ihrer Position.</p>
             <div class="blip-list">${blips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
           </div>
           <div class="admin-map-fields">
@@ -411,11 +423,29 @@
           <div class="admin-field"><label>${window.SIXWORLD.escapeHtml(cat.key)} - LEGEND</label><input data-cat-index="${i}" data-cat-field="legend" value="${window.SIXWORLD.escapeHtml(cat.legend||'')}"></div>`).join('')}</div>
       </section>`;
 
-    $('#mapImageInput').oninput=e=>{draft.map.image=e.target.value;$('#mapEditPreview img').src=e.target.value};
+    const preview=$('#mapEditPreview'), stage=$('#adminMapStage');
+    const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+    function applyAdminMap(){
+      if(!stage)return;
+      stage.style.transform=`translate(calc(-50% + ${adminMapX}px),calc(-50% + ${adminMapY}px)) scale(${adminMapScale})`;
+      const label=$('#adminMapZoomLabel'); if(label)label.textContent=Math.round(adminMapScale*100)+'%';
+    }
+    function setAdminZoom(next){adminMapScale=clamp(next,.75,4);applyAdminMap();}
+    function resetAdminMap(){adminMapScale=1;adminMapX=0;adminMapY=0;applyAdminMap();}
+    applyAdminMap();
+
+    $('#mapImageInput').oninput=e=>{draft.map.image=e.target.value;const img=$('#adminMapStage img');if(img)img.src=e.target.value};
     $('#mapLogoInput').oninput=e=>draft.map.logo=e.target.value;
     $('#mapIntroInput').oninput=e=>draft.map.introLabel=e.target.value;
     $('#mapUpdatedInput').oninput=e=>draft.map.updatedDate=e.target.value;
     $$('[data-cat-index]').forEach(inp=>inp.oninput=e=>{draft.map.categories[+e.target.dataset.catIndex][e.target.dataset.catField]=e.target.value});
+
+    ['adminZoomIn','adminZoomOut','adminZoomReset'].forEach(id=>$('#'+id)?.addEventListener('pointerdown',e=>e.stopPropagation()));
+    $('#adminZoomIn')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setAdminZoom(adminMapScale+.25)});
+    $('#adminZoomOut')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setAdminZoom(adminMapScale-.25)});
+    $('#adminZoomReset')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();resetAdminMap()});
+    preview?.addEventListener('wheel',e=>{e.preventDefault();setAdminZoom(adminMapScale+(e.deltaY<0?.15:-.15))},{passive:false});
+    preview?.querySelector('img')?.addEventListener('dragstart',e=>e.preventDefault());
 
     const currentBlip=()=>draft.map.blips.find(x=>String(x.id)===String(selectedBlipId))||null;
     function syncCurrentBlip(){
@@ -425,17 +455,47 @@
       b.tags=$('#bTags').value.split(',').map(x=>x.trim()).filter(Boolean);b.description=$('#bDesc').value;b.link=$('#bLink').value;
       b.x=+$('#bX').value;b.y=+$('#bY').value;b.featured=$('#bFeatured').value==='true';
       const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.innerHTML=adminMapIconSvg(b.category);el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
+      const row=$(`.blip-item[data-pick-blip="${CSS.escape(String(b.id))}"]`);if(row){row.querySelector('b').textContent=b.label;const n=row.querySelector('.inline-note');if(n)n.textContent=`${b.category} · ${b.x}% / ${b.y}%`;}
     }
     ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
     $$('.blip-item').forEach(item=>item.onclick=()=>{selectedBlipId=item.dataset.pickBlip;renderMap()});
+
     $$('.edit-blip').forEach(btn=>{
       btn.onclick=e=>{e.stopPropagation();selectedBlipId=btn.dataset.id;renderMap()};
       let moving=false;
-      btn.onpointerdown=e=>{e.stopPropagation();moving=true;btn.setPointerCapture(e.pointerId);selectedBlipId=btn.dataset.id};
-      btn.onpointermove=e=>{if(!moving)return;const b=draft.map.blips.find(x=>String(x.id)===String(btn.dataset.id));if(!b)return;const r=$('#mapEditPreview').getBoundingClientRect();b.x=+Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)).toFixed(1);b.y=+Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)).toFixed(1);btn.style.left=b.x+'%';btn.style.top=b.y+'%';if($('#bX'))$('#bX').value=b.x;if($('#bY'))$('#bY').value=b.y};
-      btn.onpointerup=()=>{moving=false;renderMap()};
+      btn.onpointerdown=e=>{e.preventDefault();e.stopPropagation();moving=true;btn.setPointerCapture(e.pointerId);selectedBlipId=btn.dataset.id};
+      btn.onpointermove=e=>{
+        if(!moving)return;
+        const b=draft.map.blips.find(x=>String(x.id)===String(btn.dataset.id));if(!b)return;
+        const r=stage.getBoundingClientRect();
+        b.x=+clamp((e.clientX-r.left)/r.width*100,0,100).toFixed(1);
+        b.y=+clamp((e.clientY-r.top)/r.height*100,0,100).toFixed(1);
+        btn.style.left=b.x+'%';btn.style.top=b.y+'%';if($('#bX'))$('#bX').value=b.x;if($('#bY'))$('#bY').value=b.y;
+        const row=$(`.blip-item[data-pick-blip="${CSS.escape(String(b.id))}"] .inline-note`);if(row)row.textContent=`${b.category} · ${b.x}% / ${b.y}%`;
+      };
+      btn.onpointerup=e=>{moving=false;try{btn.releasePointerCapture(e.pointerId)}catch(_){}};
+      btn.ondragstart=e=>e.preventDefault();
     });
-    $('#mapEditPreview').onclick=e=>{if(e.target.closest('.edit-blip'))return;const r=e.currentTarget.getBoundingClientRect();const b={id:uid('loc'),x:+(((e.clientX-r.left)/r.width*100).toFixed(1)),y:+(((e.clientY-r.top)/r.height*100).toFixed(1)),label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
+
+    let panning=false,startX=0,startY=0,baseX=0,baseY=0,moved=false;
+    preview?.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.edit-blip,.admin-map-toolbar'))return;
+      e.preventDefault();panning=true;moved=false;startX=e.clientX;startY=e.clientY;baseX=adminMapX;baseY=adminMapY;preview.classList.add('dragging');preview.setPointerCapture(e.pointerId);
+    });
+    preview?.addEventListener('pointermove',e=>{
+      if(!panning)return;
+      const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.hypot(dx,dy)>4)moved=true;
+      adminMapX=baseX+dx;adminMapY=baseY+dy;applyAdminMap();
+    });
+    preview?.addEventListener('pointerup',e=>{
+      if(!panning)return;panning=false;preview.classList.remove('dragging');try{preview.releasePointerCapture(e.pointerId)}catch(_){}
+      if(moved)return;
+      const r=stage.getBoundingClientRect();
+      const x=+clamp((e.clientX-r.left)/r.width*100,0,100).toFixed(1),y=+clamp((e.clientY-r.top)/r.height*100,0,100).toFixed(1);
+      const b={id:uid('loc'),x,y,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};
+      draft.map.blips.push(b);selectedBlipId=b.id;renderMap();
+    });
+
     $('#newBlip').onclick=()=>{const b={id:uid('loc'),x:50,y:50,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
     $('#deleteBlip').onclick=()=>{if(!selectedBlipId)return;draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));selectedBlipId=draft.map.blips[0]?.id||null;renderMap()};
     $('#exportMapJson').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(draft.map,null,2));window.SIXWORLD.toast('Map JSON copied.')}catch(e){window.SIXWORLD.toast('Clipboard unavailable.')}};
