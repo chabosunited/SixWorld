@@ -97,3 +97,9 @@ The News page now pulls new posts automatically from:
 - r/GTA6_NEW
 
 The Cloudflare Pages Function `functions/api/feed/reddit.js` uses the public Atom/RSS feeds and combines both subreddits into one newest-first stream. The Admin Panel now supports multiple subreddit names under Settings → Feed Configuration. Enter one subreddit per line or separate them by commas.
+
+
+## v16 fixes
+- Deleting all map locations in the Admin Panel now stays deleted; demo blips are no longer silently recreated.
+- Recently Discovered is generated only from the currently saved map locations.
+- Home shows up to 5 Leak items and up to 5 Latest News items instead of 3.

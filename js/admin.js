@@ -506,7 +506,7 @@
     });
 
     $('#newBlip').onclick=()=>{const b={id:uid('loc'),x:50,y:50,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
-    $('#deleteBlip').onclick=()=>{if(!selectedBlipId)return;draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));selectedBlipId=draft.map.blips[0]?.id||null;renderMap()};
+    $('#deleteBlip').onclick=async()=>{if(!selectedBlipId)return;draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));selectedBlipId=draft.map.blips[0]?.id||null;renderMap();await saveDraft('Location deleted & published.')};
     $('#exportMapJson').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(draft.map,null,2));window.SIXWORLD.toast('Map JSON copied.')}catch(e){window.SIXWORLD.toast('Clipboard unavailable.')}};
   }
 

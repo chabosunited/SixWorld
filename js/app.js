@@ -66,23 +66,21 @@
     if(!keys.has('landmark') || !keys.has('activity') || !keys.has('shop')) m.categories=newCategories;
     else m.categories=newCategories.map(def=>({...def,...((m.categories||[]).find(x=>x.key===def.key)||{})}));
 
-    const sampleDetails=[
-      {label:'Ocean Drive',category:'landmark',symbol:'★',x:66,y:40,image:'assets/nighttimepink.webp',region:'Vice City',district:'South Beach',description:"The iconic strip of Ocean Drive is the heartbeat of Vice City's nightlife. Neon lights, luxury hotels, and non-stop energy day and night.",tags:['LANDMARK','NIGHTLIFE','SHOPPING'],poiCount:12,discovered:'May 8, 2025',featured:true},
-      {label:'Vice City Pier',category:'landmark',symbol:'★',x:61,y:52,image:'assets/gtaimage2.png',region:'Vice City',district:'South Beach',description:'A bright waterfront landmark with rides, nightlife and ocean views.',tags:['LANDMARK','PIER'],poiCount:7,discovered:'May 9, 2025'},
-      {label:'Grassrivers Airboats',category:'activity',symbol:'⚑',x:35,y:57,image:'assets/daytime.jpg',region:'Leonida',district:'Grassrivers',description:'Airboat tours and swamp activities across the Grassrivers wetlands.',tags:['ACTIVITY','OUTDOORS'],poiCount:5,discovered:'May 10, 2025'},
-      {label:'Leonida Mall',category:'shop',symbol:'▣',x:50,y:59,image:'assets/gtaimage1.png',region:'Leonida',district:'Vice-Dale County',description:'A major shopping destination with stores, restaurants and entertainment.',tags:['SHOP','MALL'],poiCount:18,discovered:'May 10, 2025'},
-      {label:'Starfish Island',category:'safehouse',symbol:'⌂',x:54,y:69,image:'assets/gtaimage4.jpg',region:'Vice City',district:'Starfish Island',description:'Luxury properties and secluded safehouses in an exclusive island neighborhood.',tags:['SAFEHOUSE','LUXURY'],poiCount:9,discovered:'May 11, 2025'},
-      {label:'Underwater Ruins',category:'secret',symbol:'◇',x:78,y:72,image:'assets/nighttime.webp',region:'Leonida',district:'Atlantic Coast',description:'A mysterious underwater point of interest hidden off the coast.',tags:['SECRET','UNDERWATER'],poiCount:3,discovered:'May 12, 2025'},
-      {label:'Port Gellhorn Transit',category:'transport',symbol:'▰',x:30,y:37,image:'assets/gtaimage3.png',region:'Leonida',district:'Port Gellhorn',description:'A transport hub connecting western Leonida to the main metropolitan area.',tags:['TRANSPORT'],poiCount:6,discovered:'May 7, 2025'}
-    ];
-    // Older installations only have 4 simple blips. Preserve them but enrich/migrate categories.
+    // Preserve exactly the locations saved in D1. Earlier versions automatically
+    // re-added demo locations after an admin deleted them; that made deleted blips
+    // and Recently Discovered cards appear again. Only migrate existing locations.
     const oldMap={city:'district',poi:'landmark',leak:'secret'};
-    m.blips=(m.blips||[]).map((b,i)=>{
-      const fallback=sampleDetails[i%sampleDetails.length];
-      return {...fallback,...b,category:oldMap[b.category]||b.category||fallback.category,image:migratePath(b.image||fallback.image),region:b.region||fallback.region,district:b.district||fallback.district,tags:Array.isArray(b.tags)?b.tags:fallback.tags,poiCount:b.poiCount??fallback.poiCount,discovered:b.discovered||fallback.discovered,description:b.description||fallback.description};
-    });
-    const present=new Set(m.blips.map(x=>String(x.label).toLowerCase()));
-    sampleDetails.forEach((b,i)=>{ if(!present.has(b.label.toLowerCase())) m.blips.push({id:`map_v9_${i+1}`,...b}); });
+    m.blips=Array.isArray(m.blips) ? m.blips.map(b=>({
+      ...b,
+      category:oldMap[b.category]||b.category||'landmark',
+      image:migratePath(b.image||'assets/nighttimepink.webp'),
+      region:b.region||'Leonida',
+      district:b.district||'',
+      tags:Array.isArray(b.tags)?b.tags:[],
+      poiCount:b.poiCount??0,
+      discovered:b.discovered||'',
+      description:b.description||''
+    })) : [];
   }
 
   const iconSvg = {
@@ -175,7 +173,7 @@
   }
 
   function renderHome(){
-    const leaks=(app.content.leaks||[]).slice(0,3);
+    const leaks=(app.content.leaks||[]).slice(0,5);
     $('#homeLeaks').innerHTML = homePanelHeader('leaks','LEAKS','#leaks') + leaks.map(l=>`
       <div class="leak-mini" data-video-id="${escapeHtml(l.id)}">
         <div class="thumb"><img src="${escapeHtml(l.thumb)}" alt=""><i class="play"></i><span class="duration">${escapeHtml(l.duration||'')}</span></div>
@@ -187,7 +185,7 @@
       `<div class="screens-mini">${shots.map(s=>`<button data-shot-id="${escapeHtml(s.id)}"><img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.title)}"></button>`).join('')}</div>
        <div class="carousel-pips"><i></i><i></i><i></i><i></i><i></i></div>`;
 
-    const news=mergedNewsList().slice(0,3);
+    const news=mergedNewsList().slice(0,5);
     $('#homeNews').innerHTML = homePanelHeader('news','LATEST NEWS','#news') + news.map(n=>`
       <a class="news-mini" href="${escapeHtml(n.url||'#news')}" target="${String(n.url||'').startsWith('http')?'_blank':'_self'}">
         <div class="thumb"><img src="${escapeHtml(n.image)}" alt=""></div>
@@ -286,7 +284,19 @@
   function mapTagsHtml(tags=[]){ return tags.slice(0,4).map(t=>`<span>${escapeHtml(t)}</span>`).join(''); }
 
   function updateMapDetail(blip){
-    if(!blip) return;
+    if(!blip){
+      app.selectedMapBlipId=null;
+      const title=$('#mapDetailTitle'), region=$('#mapDetailRegion'), desc=$('#mapDetailDescription');
+      if(title) title.textContent='NO LOCATION SELECTED';
+      if(region) region.textContent='LEONIDA';
+      if(desc) desc.textContent='Add locations in the Admin Panel to show them on the interactive map.';
+      const tags=$('#mapDetailTags'), facts=$('#mapDetailFacts'), badge=$('#mapFeaturedBadge');
+      if(tags) tags.innerHTML='';
+      if(facts) facts.innerHTML='';
+      if(badge) badge.style.display='none';
+      $$('.map-blip,.recent-card').forEach(x=>x.classList.remove('selected'));
+      return;
+    }
     app.selectedMapBlipId=blip.id;
     $('#mapInfoPanel')?.classList.remove('collapsed');
     $('#mapDetailImage').src=blip.image||'assets/nighttimepink.webp';
@@ -306,7 +316,9 @@
 
   function renderRecentDiscovered(){
     const items=(app.content.map?.blips||[]).filter(x=>x.image).slice(-6).reverse();
-    $('#recentDiscovered').innerHTML=items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${mapIconSvg(b.category,'recent-icon')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('');
+    $('#recentDiscovered').innerHTML=items.length
+      ? items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${mapIconSvg(b.category,'recent-icon')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('')
+      : '<div class="recent-empty">NO LOCATIONS DISCOVERED YET</div>';
     $$('.recent-card').forEach(card=>card.onclick=()=>{ const b=(app.content.map.blips||[]).find(x=>String(x.id)===card.dataset.blipId); if(b) updateMapDetail(b); });
   }
 
@@ -323,7 +335,7 @@
     const selected=(m.blips||[]).find(x=>String(x.id)===String(app.selectedMapBlipId)) || (m.blips||[]).find(x=>x.featured) || m.blips?.[0];
     updateMapStageMetrics();
     resetMap();
-    if(selected) updateMapDetail(selected);
+    updateMapDetail(selected||null);
     $$('.map-blip').forEach(el=>el.onclick=e=>{ e.stopPropagation(); const b=(m.blips||[]).find(x=>String(x.id)===String(el.dataset.id)); if(b) updateMapDetail(b); });
   }
 

@@ -1074,3 +1074,14 @@ body::before{
 @media (max-width:920px){
   .map-reference-viewport .map-stage img{width:auto!important;height:auto!important}
 }
+
+
+/* ===== SIXWORLD v16: admin-deletion fidelity + richer home previews ===== */
+.recent-empty{
+  grid-column:1/-1;min-height:82px;display:grid;place-items:center;border:1px dashed rgba(220,228,241,.16);
+  border-radius:8px;color:#75839a;font:800 12px/1 var(--font-display);letter-spacing:.06em;background:rgba(255,255,255,.015)
+}
+@media (min-width:921px){
+  #homeLeaks .leak-mini,#homeNews .news-mini{padding-top:9px;padding-bottom:9px}
+  #homeLeaks .thumb,#homeNews .thumb{min-height:0}
+}
