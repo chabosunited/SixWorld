@@ -340,5 +340,14 @@
         "link": "#map"
       }
     ]
+  },
+  "feeds": {
+    "enabled": true,
+    "subreddits": [
+      "GTA6unmoderated",
+      "GTA6_NEW"
+    ],
+    "xUser": "RockstarGames",
+    "maxItems": 10
   }
 }

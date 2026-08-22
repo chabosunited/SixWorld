@@ -79,7 +79,14 @@
     const current=new Map((draft.map.categories||[]).map(x=>[x.key,x]));
     draft.map.categories=requiredCats.map(x=>({...x,...(current.get(x.key)||{})}));
     draft.settings ||= {siteName:'SIXWORLD',searchPlaceholder:'Search...',accent:'#ff4fa3',accent2:'#42e6ee'};
-    draft.feeds ||= {enabled:true, subreddit:'GTA6', xUser:'RockstarGames', maxItems:6};
+    draft.feeds ||= {};
+    draft.feeds.enabled = draft.feeds.enabled !== false;
+    draft.feeds.subreddits = Array.isArray(draft.feeds.subreddits) && draft.feeds.subreddits.length
+      ? draft.feeds.subreddits
+      : ['GTA6unmoderated','GTA6_NEW'];
+    draft.feeds.xUser ||= 'RockstarGames';
+    draft.feeds.maxItems = Math.max(1, Number(draft.feeds.maxItems)||10);
+    delete draft.feeds.subreddit;
     draft.access ||= {secretText:'sw_6.0.22',secretPage:'map',demoUser:'admin',demoPass:'sixworld'};
   }
 
@@ -349,10 +356,12 @@
     section.innerHTML = `<h3>Live Feed Import</h3><p class="inline-note">Importiere aktuelle Items aus Reddit und X direkt in deine manuelle News-Liste.</p><div class="inline-actions"><button class="solid-btn" id="importFeedsBtn">IMPORT LIVE FEEDS</button></div>`;
     $('#adminContent').appendChild(section);
     $('#importFeedsBtn').onclick = async ()=>{
-      const subreddit = draft.feeds?.subreddit || 'GTA6';
+      const subreddits = Array.isArray(draft.feeds?.subreddits) && draft.feeds.subreddits.length
+        ? draft.feeds.subreddits
+        : ['GTA6unmoderated','GTA6_NEW'];
       const xUser = draft.feeds?.xUser || 'RockstarGames';
       const [reddit, xFeed] = await Promise.all([
-        fetch(`/api/feed/reddit?subreddit=${encodeURIComponent(subreddit)}`).then(r=>r.ok?r.json():{items:[]}).catch(()=>({items:[]})),
+        fetch(`/api/feed/reddit?subreddits=${encodeURIComponent(subreddits.join(','))}`).then(r=>r.ok?r.json():{items:[]}).catch(()=>({items:[]})),
         fetch(`/api/feed/x?user=${encodeURIComponent(xUser)}`).then(r=>r.ok?r.json():{items:[]}).catch(()=>({items:[]}))
       ]);
       const items = [...(xFeed.items||[]), ...(reddit.items||[])];
@@ -513,15 +522,16 @@
       </div></section>
       <section class="admin-section"><h3>Feed Configuration</h3><div class="admin-form">
         <div class="admin-field"><label>LIVE FEEDS ENABLED</label><select id="feedEnabled"><option value="true" ${(f.enabled!==false)?'selected':''}>true</option><option value="false" ${(f.enabled===false)?'selected':''}>false</option></select></div>
-        <div class="admin-field"><label>REDDIT SUBREDDIT</label><input id="feedSubreddit" value="${window.SIXWORLD.escapeHtml(f.subreddit||'GTA6')}"></div>
+        <div class="admin-field full"><label>REDDIT FEEDS (one per line or comma-separated)</label><textarea id="feedSubreddits" rows="4">${window.SIXWORLD.escapeHtml((Array.isArray(f.subreddits)&&f.subreddits.length?f.subreddits:['GTA6unmoderated','GTA6_NEW']).join('\n'))}</textarea></div>
         <div class="admin-field"><label>X USERNAME</label><input id="feedXUser" value="${window.SIXWORLD.escapeHtml(f.xUser||'RockstarGames')}"></div>
-        <div class="admin-field"><label>MAX LIVE ITEMS</label><input id="feedMaxItems" type="number" min="1" max="20" value="${window.SIXWORLD.escapeHtml(String(f.maxItems||6))}"></div>
-      </div><div class="codebox" style="margin-top:16px">Für automatische Rockstar/X-Posts setze <b>X_BEARER_TOKEN</b> in deiner Deployment-Umgebung. Reddit Sync läuft über den enthaltenen Serverless-Endpunkt. Die Live-Feeds werden auf der Seite automatisch geladen und können im News-Tab zusätzlich in die manuelle News-Liste importiert werden.</div></section>`;
+        <div class="admin-field"><label>MAX LIVE ITEMS</label><input id="feedMaxItems" type="number" min="1" max="30" value="${window.SIXWORLD.escapeHtml(String(f.maxItems||10))}"></div>
+      </div><div class="codebox" style="margin-top:16px"><b>Active Reddit feeds:</b> r/GTA6unmoderated and r/GTA6_NEW. Neue Posts werden automatisch auf der News-Seite geladen. Du kannst hier später weitere Subreddits ergänzen oder entfernen. Der Serverless-Feed wird für wenige Minuten gecacht, damit Reddit nicht bei jedem Besucher neu angefragt wird.</div></section>`;
     ['setName','setSearch','setAccent','setAccent2'].forEach(id=>$('#'+id).oninput=()=>{
       draft.settings={siteName:$('#setName').value,searchPlaceholder:$('#setSearch').value,accent:$('#setAccent').value,accent2:$('#setAccent2').value};
     });
-    ['feedEnabled','feedSubreddit','feedXUser','feedMaxItems'].forEach(id=>$('#'+id).oninput=()=>{
-      draft.feeds={enabled:$('#feedEnabled').value==='true',subreddit:$('#feedSubreddit').value,xUser:$('#feedXUser').value,maxItems:+$('#feedMaxItems').value||6};
+    ['feedEnabled','feedSubreddits','feedXUser','feedMaxItems'].forEach(id=>$('#'+id).oninput=()=>{
+      const subreddits=$('#feedSubreddits').value.split(/[\n,]+/).map(x=>x.trim().replace(/^r\//i,'')).filter(Boolean);
+      draft.feeds={enabled:$('#feedEnabled').value==='true',subreddits:subreddits.length?subreddits:['GTA6unmoderated','GTA6_NEW'],xUser:$('#feedXUser').value,maxItems:+$('#feedMaxItems').value||10};
     });
   }
 

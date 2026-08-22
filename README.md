@@ -89,3 +89,11 @@ Deine bereits vorhandenen Inhalte bleiben erhalten. Beim Laden werden alte Asset
 - Map markers live inside the transformed map stage, so marker size and position scale together with the map in public and admin views.
 - Browser-native dragging of the public map image is disabled so map panning no longer drags the image file.
 - Public right-click/context menu and casual media dragging are disabled as a deterrent against simple asset saving. This is not DRM and cannot technically prevent a determined visitor from saving browser-delivered assets.
+
+## v15 Reddit Live Feeds
+
+The News page now pulls new posts automatically from:
+- r/GTA6unmoderated
+- r/GTA6_NEW
+
+The Cloudflare Pages Function `functions/api/feed/reddit.js` uses the public Atom/RSS feeds and combines both subreddits into one newest-first stream. The Admin Panel now supports multiple subreddit names under Settings → Feed Configuration. Enter one subreddit per line or separate them by commas.

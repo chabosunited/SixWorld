@@ -24,7 +24,14 @@
     app.content.leaks ||= [];
     app.content.screenshots ||= [];
     app.content.news ||= [];
-    app.content.feeds ||= {enabled:true, subreddit:'GTA6', xUser:'RockstarGames', maxItems:6};
+    app.content.feeds ||= {};
+    app.content.feeds.enabled = app.content.feeds.enabled !== false;
+    app.content.feeds.subreddits = Array.isArray(app.content.feeds.subreddits) && app.content.feeds.subreddits.length
+      ? app.content.feeds.subreddits
+      : ['GTA6unmoderated','GTA6_NEW'];
+    app.content.feeds.xUser ||= 'RockstarGames';
+    app.content.feeds.maxItems = Math.max(1, Number(app.content.feeds.maxItems)||10);
+    delete app.content.feeds.subreddit;
 
     // Asset names were shortened in v9. Migrate older D1 content automatically.
     const legacyPaths={
@@ -115,11 +122,13 @@
   async function refreshFeeds({silent=false}={}){
     const cfg = app.content.feeds || {};
     if(cfg.enabled===false){ app.liveFeedItems=[]; if(!silent) toast('Live feeds disabled in settings.'); return []; }
-    const subreddit = cfg.subreddit || 'GTA6';
+    const subreddits = Array.isArray(cfg.subreddits) && cfg.subreddits.length
+      ? cfg.subreddits.map(x=>String(x).replace(/^r\//i,'').trim()).filter(Boolean)
+      : ['GTA6unmoderated','GTA6_NEW'];
     const xUser = cfg.xUser || 'RockstarGames';
-    const maxItems = Math.max(1, Number(cfg.maxItems)||6);
+    const maxItems = Math.max(1, Number(cfg.maxItems)||10);
     const [reddit, xFeed] = await Promise.all([
-      fetchFeed(`/api/feed/reddit?subreddit=${encodeURIComponent(subreddit)}`),
+      fetchFeed(`/api/feed/reddit?subreddits=${encodeURIComponent(subreddits.join(','))}`),
       fetchFeed(`/api/feed/x?user=${encodeURIComponent(xUser)}`)
     ]);
     app.liveFeedItems = dedupeNews([...xFeed, ...reddit]).sort((a,b)=>parseTime(b.date)-parseTime(a.date)).slice(0,maxItems);
