@@ -1,0 +1,16 @@
+name = "sixworld"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sixworld-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[vars]
+ADMIN_USERNAME = "admin"
+# Prefer ADMIN_PASSWORD_HASH in production. ADMIN_PASSWORD is supported as fallback.
+# ADMIN_PASSWORD = "change-me"
+# ADMIN_PASSWORD_HASH = "sha256hex..."
+# ADMIN_SESSION_SECRET = "replace-with-a-long-random-secret"
+# X_BEARER_TOKEN = "optional-for-x-feed"

@@ -1,0 +1,217 @@
+{
+  "settings": {
+    "siteName": "SIXWORLD",
+    "searchPlaceholder": "Search...",
+    "accent": "#ff4fa3",
+    "accent2": "#42e6ee"
+  },
+  "access": {
+    "secretText": "sw_6.0.22",
+    "secretPage": "map",
+    "demoUser": "admin",
+    "demoPass": "sixworld"
+  },
+  "hero": [
+    {
+      "id": "h1",
+      "eyebrow": "WELCOME TO",
+      "description": "Your ultimate hub for GTA VI news, leaks, screenshots and more.",
+      "image": "assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg",
+      "cta": "EXPLORE NOW",
+      "href": "#news"
+    },
+    {
+      "id": "h2",
+      "eyebrow": "LATEST LEAKS",
+      "description": "Watch the newest community videos, gameplay analysis and Vice City discoveries in one place.",
+      "image": "assets/GTA_6_New_Release_Date_Explained_d65d2837da.png",
+      "cta": "VIEW LEAKS",
+      "href": "#leaks"
+    },
+    {
+      "id": "h3",
+      "eyebrow": "EXPLORE THE MAP",
+      "description": "Track points of interest, rumors and discoveries across Vice City and the wider Leonida map.",
+      "image": "assets/GTA6MapSideview.png",
+      "cta": "OPEN MAP",
+      "href": "#map"
+    }
+  ],
+  "leaks": [
+    {
+      "id": "l1",
+      "title": "GTA VI \u2013 New Gameplay Leak (May 2025)",
+      "date": "May 12, 2025",
+      "duration": "02:31",
+      "thumb": "assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg",
+      "video": "https://www.youtube.com/watch?v=QdBZY2fkU-0",
+      "source": "Community"
+    },
+    {
+      "id": "l2",
+      "title": "Vice City Nightlife Footage Leak",
+      "date": "May 8, 2025",
+      "duration": "01:48",
+      "thumb": "assets/GTA_6_New_Release_Date_Explained_d65d2837da.png",
+      "video": "https://www.youtube.com/watch?v=QdBZY2fkU-0",
+      "source": "Community"
+    },
+    {
+      "id": "l3",
+      "title": "GTA VI \u2013 Story Details Leak",
+      "date": "May 5, 2025",
+      "duration": "03:02",
+      "thumb": "assets/gta-6-trailer-2.jpg",
+      "video": "https://www.youtube.com/watch?v=VQRLujxTm3c",
+      "source": "Community"
+    },
+    {
+      "id": "l4",
+      "title": "Leonida Map Breakdown",
+      "date": "Apr 29, 2025",
+      "duration": "04:17",
+      "thumb": "assets/GTA6MapSideview.png",
+      "video": "https://www.youtube.com/watch?v=VQRLujxTm3c",
+      "source": "Map Project"
+    }
+  ],
+  "screenshots": [
+    {
+      "id": "s1",
+      "title": "Vice City Sunset",
+      "source": "SIXWORLD",
+      "image": "assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg"
+    },
+    {
+      "id": "s2",
+      "title": "Neon Boulevard",
+      "source": "Rockstar Games",
+      "image": "assets/gta-6-trailer-2.jpg"
+    },
+    {
+      "id": "s3",
+      "title": "Leonida Coastline",
+      "source": "SIXWORLD",
+      "image": "assets/GTA6MapSideview.png"
+    },
+    {
+      "id": "s4",
+      "title": "Jason & Lucia",
+      "source": "Community",
+      "image": "assets/GTA_6_New_Release_Date_Explained_d65d2837da.png"
+    },
+    {
+      "id": "s5",
+      "title": "Vice City Mood",
+      "source": "Community",
+      "image": "assets/GTA-6-artwork-characters-larger.jpg"
+    },
+    {
+      "id": "s6",
+      "title": "Interactive Map",
+      "source": "SIXWORLD",
+      "image": "assets/InteractiveMap/GTA6MAP.png"
+    }
+  ],
+  "news": [
+    {
+      "id": "n1",
+      "title": "Rockstar Confirms GTA VI Launch Window",
+      "date": "May 15, 2025",
+      "source": "ROCKSTAR",
+      "image": "assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg",
+      "summary": "Official GTA VI updates and major announcements can be surfaced here automatically or added manually.",
+      "url": "https://www.rockstargames.com/VI"
+    },
+    {
+      "id": "n2",
+      "title": "GTA VI Website Updated with New Artwork",
+      "date": "May 10, 2025",
+      "source": "X",
+      "image": "assets/pngs/official-gta-vi-logo.webp",
+      "summary": "Track Rockstar and X posts plus editorial SIXWORLD items in one unified news feed.",
+      "url": "https://www.rockstargames.com/VI"
+    },
+    {
+      "id": "n3",
+      "title": "Take-Two: High Expectations for GTA VI",
+      "date": "May 6, 2025",
+      "source": "REDDIT",
+      "image": "assets/gta-6-trailer-2.jpg",
+      "summary": "Community and Reddit discussions around GTA VI leaks can be included alongside official news.",
+      "url": "https://www.reddit.com/r/GTA6/"
+    }
+  ],
+  "map": {
+    "image": "assets/InteractiveMap/GTA6MAP.png",
+    "introLabel": "VICE CITY & BEYOND",
+    "categories": [
+      {
+        "key": "all",
+        "label": "ALL",
+        "legend": "ALL LOCATIONS",
+        "short": "ALL"
+      },
+      {
+        "key": "city",
+        "label": "CITY",
+        "legend": "CITY / AREA",
+        "short": "VC"
+      },
+      {
+        "key": "poi",
+        "label": "POI",
+        "legend": "POINT OF INTEREST",
+        "short": "POI"
+      },
+      {
+        "key": "leak",
+        "label": "LEAK",
+        "legend": "LEAK / RUMOR",
+        "short": "?"
+      }
+    ],
+    "blips": [
+      {
+        "id": "b1",
+        "x": 59,
+        "y": 66,
+        "label": "Vice City",
+        "category": "city",
+        "symbol": "VC",
+        "description": "Main metro hotspot and the primary urban core of Leonida.",
+        "link": "#map"
+      },
+      {
+        "id": "b2",
+        "x": 42,
+        "y": 22,
+        "label": "Northern Leonida",
+        "category": "poi",
+        "symbol": "N",
+        "description": "A northern zone useful for broader world exploration and custom markers.",
+        "link": "#map"
+      },
+      {
+        "id": "b3",
+        "x": 31,
+        "y": 72,
+        "label": "Southern Keys",
+        "category": "poi",
+        "symbol": "K",
+        "description": "Coastal region suitable for map notes, points of interest and future discoveries.",
+        "link": "#map"
+      },
+      {
+        "id": "b4",
+        "x": 68,
+        "y": 42,
+        "label": "Community Discovery",
+        "category": "leak",
+        "symbol": "?",
+        "description": "Use leak markers for rumors, discoveries and user-tracked findings.",
+        "link": "#map"
+      }
+    ]
+  }
+}

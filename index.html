@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07101f" />
+  <title>SIXWORLD — GTA VI News, Leaks & Map</title>
+  <meta name="description" content="SIXWORLD — GTA VI News, Leaks, Screenshots und interaktive Map." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="SIXWORLD Home"><img src="assets/logo/sixworldlogo.png" alt="SIXWORLD"></a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a data-route="home" href="#home">HOME</a>
+      <a data-route="leaks" href="#leaks">LEAKS</a>
+      <a data-route="screenshots" href="#screenshots">SCREENSHOTS</a>
+      <a data-route="news" href="#news">NEWS</a>
+      <a data-route="map" href="#map">MAP</a>
+    </nav>
+    <div class="header-actions">
+      <label class="searchbox" aria-label="Suche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg><input id="globalSearch" type="search" placeholder="Search..." /></label>
+      <button class="round-btn" id="profileBtn" aria-label="Profil"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0m12-13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg></button>
+    </div>
+  </header>
+
+  <main id="app">
+    <section class="page active" data-page="home">
+      <section class="hero" id="hero">
+        <div class="hero-bg" id="heroBg"></div>
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <div class="eyebrow" id="heroEyebrow">WELCOME TO</div>
+          <img class="hero-logo" src="assets/logo/sixworldlogo.png" alt="SIXWORLD">
+          <p id="heroDescription"></p>
+          <a id="heroCta" class="outline-btn" href="#news">EXPLORE NOW <span>›</span></a>
+        </div>
+        <div class="hero-dots" id="heroDots"></div>
+        <div class="hero-progress"><i id="heroProgress"></i></div>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel home-panel" id="homeLeaks"></article>
+        <article class="panel home-panel" id="homeScreens"></article>
+        <article class="panel home-panel" id="homeNews"></article>
+        <article class="panel home-panel map-card" id="homeMap"></article>
+      </section>
+    </section>
+
+    <section class="page" data-page="leaks">
+      <div class="page-head">
+        <div>
+          <span class="kicker">ARCHIVE</span>
+          <h1>LEAKS</h1>
+          <p>Gameplay-Clips, Community-Funde und eingebundene Videos per Streamable, Drive, YouTube oder Direktlink.</p>
+        </div>
+        <div class="head-stat"><b id="leakCount">0</b><span>VIDEOS</span></div>
+      </div>
+      <div class="content-grid cards-grid" id="leaksGrid"></div>
+    </section>
+
+    <section class="page" data-page="screenshots">
+      <div class="page-head">
+        <div>
+          <span class="kicker cyan">MEDIA</span>
+          <h1>SCREENSHOTS</h1>
+          <p>Asset-basierte Bilder und externe Screenshot-Links in einer sauberen Galerie.</p>
+        </div>
+        <div class="head-stat"><b id="screenCount">0</b><span>IMAGES</span></div>
+      </div>
+      <div class="shot-masonry" id="screensGrid"></div>
+    </section>
+
+    <section class="page" data-page="news">
+      <div class="page-head">
+        <div>
+          <span class="kicker">LIVE FEED</span>
+          <h1>LATEST NEWS</h1>
+          <p>Rockstar, X und ausgewählte Reddit-Posts können automatisch eingebunden oder manuell gepflegt werden.</p>
+        </div>
+        <button class="outline-btn compact" id="syncNewsBtn">REFRESH FEEDS</button>
+      </div>
+      <div class="news-layout">
+        <div class="news-list-full" id="newsList"></div>
+        <aside class="source-panel">
+          <h3>SOURCES</h3>
+          <div class="source-row"><span class="source-icon">R★</span><div><b>Rockstar Games</b><small>X / Newswire</small></div><i class="status-dot"></i></div>
+          <div class="source-row"><span class="source-icon reddit">r/</span><div><b>Reddit</b><small>r/GTA6</small></div><i class="status-dot"></i></div>
+          <div class="source-row"><span class="source-icon x">X</span><div><b>Latest Posts</b><small>Account feed</small></div><i class="status-dot"></i></div>
+          <p>Bei Deployment können die Serverless-Endpunkte die Feed-Daten liefern. Manuelle News bleiben zusätzlich immer verfügbar.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page map-page" data-page="map">
+      <div class="page-head map-head">
+        <div>
+          <span class="kicker cyan">LEONIDA</span>
+          <h1>INTERACTIVE MAP</h1>
+          <p>Zoomen, verschieben, Blips filtern und Detailinformationen zu Orten anzeigen.</p>
+        </div>
+        <div class="map-controls" id="mapFilters"></div>
+      </div>
+      <div class="map-shell">
+        <div class="map-viewport" id="mapViewport">
+          <div class="map-stage" id="mapStage">
+            <img id="mapImage" src="assets/InteractiveMap/GTA6MAP.png" alt="GTA VI Map">
+            <div id="mapBlips"></div>
+          </div>
+          <div class="map-zoom"><button id="zoomIn">+</button><button id="zoomOut">−</button><button id="zoomReset">⌖</button></div>
+          <div class="map-coords" id="mapCoords">VICE CITY & BEYOND</div>
+        </div>
+        <aside class="map-sidebar">
+          <h3>MAP LEGEND</h3>
+          <div id="mapLegend"></div>
+          <div class="map-detail" id="mapDetail"><b>Select a blip</b><p>Click any marker to view its details here.</p></div>
+          <div class="map-tip">Drag to move · Wheel to zoom · Click a marker for details.</div>
+        </aside>
+      </div>
+      <span id="adminTrigger" class="secret-trigger" title="">sw_6.0.22</span>
+    </section>
+  </main>
+
+  <footer><span>© 2026 SIXWORLD — FAN PROJECT</span><span>NOT AFFILIATED WITH ROCKSTAR GAMES OR TAKE-TWO INTERACTIVE.</span></footer>
+
+  <div class="modal" id="videoModal" aria-hidden="true"><div class="modal-card video-card"><button class="modal-close" data-close="videoModal">×</button><div id="videoFrameWrap"></div><div class="modal-caption"><span id="videoModalDate"></span><h2 id="videoModalTitle"></h2></div></div></div>
+  <div class="modal" id="lightbox" aria-hidden="true"><div class="modal-card lightbox-card"><button class="modal-close" data-close="lightbox">×</button><img id="lightboxImage" alt="Screenshot"><div class="modal-caption"><span id="lightboxSource"></span><h2 id="lightboxTitle"></h2></div></div></div>
+  <div class="modal" id="loginModal" aria-hidden="true"><div class="modal-card login-card"><button class="modal-close" data-close="loginModal">×</button><div class="admin-mark">VI</div><span class="kicker">RESTRICTED</span><h2>SIXWORLD CONTROL</h2><p>Authorized access only.</p><form id="loginForm"><input id="adminUser" autocomplete="username" placeholder="Username" value="admin"><input id="adminPass" autocomplete="current-password" type="password" placeholder="Password"><button class="solid-btn" type="submit">ACCESS PANEL</button></form><small id="loginHint">Secure backend login when deployed. Local preview uses demo credentials.</small></div></div>
+
+  <div class="admin-overlay" id="adminOverlay" aria-hidden="true">
+    <aside class="admin-nav">
+      <div class="admin-brand"><img src="assets/logo/sixworldlogo.png" alt=""><span>CONTROL</span></div>
+      <nav>
+        <button class="active" data-admin-tab="dashboard">Overview</button>
+        <button data-admin-tab="hero">Hero Slides</button>
+        <button data-admin-tab="leaks">Leaks / Videos</button>
+        <button data-admin-tab="screens">Screenshots</button>
+        <button data-admin-tab="news">News</button>
+        <button data-admin-tab="map">Interactive Map</button>
+        <button data-admin-tab="settings">Settings</button>
+        <button data-admin-tab="access">Access</button>
+      </nav>
+      <div class="admin-mode" id="adminMode">MODE: CHECKING…</div>
+      <button class="admin-logout" id="logoutBtn">LOG OUT</button>
+    </aside>
+    <section class="admin-main">
+      <header>
+        <div><span class="kicker">ADMIN PANEL</span><h2 id="adminTitle">Overview</h2></div>
+        <div class="admin-actions"><button class="ghost-btn" id="closeAdmin">CLOSE</button><button class="solid-btn" id="saveAdmin">SAVE CHANGES</button></div>
+      </header>
+      <div id="adminContent" class="admin-content"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="js/app.js" defer></script>
+  <script src="js/admin.js" defer></script>
+</body>
+</html>
