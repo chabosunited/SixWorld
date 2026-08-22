@@ -4,7 +4,7 @@ Professionelle GTA VI Fan-Website im Stil deiner Referenz.
 
 ## Highlights
 
-- Startseite im SIXWORLD / GTA VI Stil
+- Startseite im SIXWORLD / GTA VI Stil.
 - Hero/Header als automatische Slideshow
 - Seiten für Home, Leaks, Screenshots, News und Map
 - Video-Einbindung per Streamable, Google Drive, YouTube oder direktem MP4/WebM-Link
