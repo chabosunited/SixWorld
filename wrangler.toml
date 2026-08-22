@@ -1,0 +1,11 @@
+name = "sixworld"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sixworld-db"
+database_id = "0c47bb68-d845-4c8b-bcb3-08a08e4a6fdc"
+
+[vars]
+ADMIN_USERNAME = "admin"
