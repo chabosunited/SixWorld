@@ -946,3 +946,61 @@ body::before{
   .admin-map-toolbar button{width:40px;height:40px}
   .admin-map-zoom-label{left:8px;bottom:8px}
 }
+
+/* ===== SIXWORLD v13: compact desktop map page ===== */
+@media (min-width:921px){
+  /* Keep the whole desktop map experience comfortably inside one screen. */
+  .map-page{padding-top:12px}
+  .map-reference-layout{align-items:stretch}
+
+  /* The map viewport is intentionally shorter; the map remains freely draggable/zoomable. */
+  .map-reference-viewport{
+    height:clamp(455px,54vh,590px);
+    min-height:455px;
+    max-height:590px;
+    overflow:hidden;
+  }
+
+  /* Side boxes follow the center column instead of forcing a full-viewport height. */
+  .map-filter-panel{
+    min-height:0;
+    height:auto;
+  }
+  .map-info-panel{
+    min-height:0;
+    height:auto;
+  }
+
+  /* Compact the controls and information so the side panels do not feel overly tall. */
+  .map-filter-panel{padding:14px 14px 12px}
+  .map-filter-title{margin-bottom:10px}
+  .map-filter-btn{height:50px}
+  .map-reset-btn{height:42px}
+
+  .map-info-image-wrap{height:150px}
+  .map-info-content{padding:14px 16px}
+  .map-info-content h2{font-size:26px}
+  .map-info-content>p{margin:12px 0;font-size:12px;line-height:1.55}
+  .map-tags{padding-bottom:12px}
+  .map-facts{gap:9px;padding-top:12px}
+  .map-legend-reference{padding:12px 16px 14px}
+  .map-legend-head{margin-bottom:10px}
+  .map-legend-grid{gap:8px}
+
+  /* Shorter recently-discovered strip underneath the map. */
+  .recent-discovered-wrap{padding:9px 12px 10px}
+  .recent-title{margin-bottom:7px}
+  .recent-card>img{height:58px}
+  .recent-card-copy{padding:6px 7px 7px}
+  .recent-card-copy b{margin-bottom:3px}
+
+  .map-data-note{margin:8px 0 0}
+}
+
+@media (min-width:1501px){
+  .map-reference-viewport{
+    height:clamp(470px,55vh,610px);
+    min-height:470px;
+    max-height:610px;
+  }
+}
