@@ -61,22 +61,41 @@
     draft.access ||= {secretText:'sw_6.0.22',secretPage:'map',demoUser:'admin',demoPass:'sixworld'};
   }
 
-  async function saveDraft(){
+  async function saveDraft(successMessage='Changes saved.'){
     normalizeDraft();
     let saved=false;
+
     if(window.SIXWORLD.backend){
       try{
-        const r=await fetch('/api/admin/content',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(draft)});
-        saved=r.ok;
-      }catch(e){}
-    }
-    if(!saved){
+        const r=await fetch('/api/admin/content',{
+          method:'PUT',
+          headers:{'content-type':'application/json'},
+          body:JSON.stringify(draft)
+        });
+        if(!r.ok){
+          const detail=await r.text().catch(()=>r.statusText);
+          window.SIXWORLD.toast(`Save failed (${r.status}). Please log in again if needed.`);
+          console.error('SIXWORLD admin save failed:',r.status,detail);
+          return false;
+        }
+        saved=true;
+      }catch(err){
+        console.error('SIXWORLD admin save error:',err);
+        window.SIXWORLD.toast('Save failed. Network/API unavailable.');
+        return false;
+      }
+    }else{
       localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
       saved=true;
     }
-    window.SIXWORLD.content=clone(draft);
-    window.SIXWORLD.renderAll();
-    window.SIXWORLD.toast(saved?'Changes saved.':'Save failed.');
+
+    if(saved){
+      window.SIXWORLD.content=clone(draft);
+      window.SIXWORLD.renderAll();
+      window.SIXWORLD.toast(successMessage);
+      return true;
+    }
+    return false;
   }
 
   function stat(n,l){ return `<div class="stat-card"><b>${n}</b><span>${l}</span></div>`; }
@@ -162,17 +181,44 @@
     bindDeletes();
     bindSelects();
     $('#newEntity').onclick=()=>{ editIds[key]=null; renderTab(); };
-    $('#saveEntity').onclick=()=>{
-      const values={}; fields.forEach(f=>values[f.name] = $(`#${key}_${f.name}`).value);
-      if(editIds[key]){
-        const index=list.findIndex(x=>String(x.id)===String(editIds[key]));
-        if(index>-1) list[index] = {...list[index], ...values};
-        window.SIXWORLD.toast('Content updated. Click SAVE CHANGES to publish.');
+    $('#saveEntity').onclick=async e=>{
+      e.preventDefault();
+      const button=e.currentTarget;
+      const originalText=button.textContent;
+      button.disabled=true;
+      button.textContent='SAVING...';
+
+      const values={};
+      fields.forEach(f=>{
+        const field=$(`#${key}_${f.name}`);
+        values[f.name]=field ? field.value : '';
+      });
+
+      const activeEditId=editIds[key];
+      let message='Content added & published.';
+
+      if(activeEditId){
+        const index=list.findIndex(x=>String(x.id)===String(activeEditId));
+        if(index<0){
+          button.disabled=false;
+          button.textContent=originalText;
+          window.SIXWORLD.toast('Update failed: content item not found.');
+          return;
+        }
+        list[index] = {...list[index], ...values};
+        message='Content updated & published.';
       }else{
         list.unshift({id:uid(key.slice(0,1)), ...values});
-        window.SIXWORLD.toast('Content added. Click SAVE CHANGES to publish.');
       }
-      editIds[key]=null; renderTab();
+
+      const ok=await saveDraft(message);
+      button.disabled=false;
+      button.textContent=originalText;
+
+      if(ok){
+        editIds[key]=null;
+        renderTab();
+      }
     };
   }
 
