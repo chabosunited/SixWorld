@@ -50,13 +50,21 @@
   function normalizeDraft(){
     draft.hero ||= []; draft.leaks ||= []; draft.screenshots ||= []; draft.news ||= [];
     draft.map ||= {image:'assets/InteractiveMap/GTA6MAP.png', blips:[]};
+    draft.map.image ||= 'assets/InteractiveMap/GTA6MAP.png';
+    draft.map.logo ||= 'assets/logo/Leonidaloga.png';
+    draft.map.updatedDate ||= 'May 12, 2025';
     draft.map.blips ||= [];
-    draft.map.categories ||= [
-      {key:'all',label:'ALL',legend:'ALL LOCATIONS',short:'ALL'},
-      {key:'city',label:'CITY',legend:'CITY / AREA',short:'CTY'},
-      {key:'poi',label:'POI',legend:'POINT OF INTEREST',short:'POI'},
-      {key:'leak',label:'LEAK',legend:'LEAK / RUMOR',short:'LEK'}
+    const requiredCats=[
+      {key:'district',label:'DISTRICTS',legend:'Districts',short:'▦',icon:'▦'},
+      {key:'landmark',label:'LANDMARKS',legend:'Landmarks',short:'★',icon:'☆'},
+      {key:'activity',label:'ACTIVITIES',legend:'Activities',short:'⚑',icon:'⚑'},
+      {key:'shop',label:'SHOPS',legend:'Shops',short:'▣',icon:'▣'},
+      {key:'safehouse',label:'SAFEHOUSES',legend:'Safehouses',short:'⌂',icon:'⌂'},
+      {key:'secret',label:'SECRETS',legend:'Secrets',short:'◇',icon:'◇'},
+      {key:'transport',label:'TRANSPORT',legend:'Transport',short:'▰',icon:'▰'}
     ];
+    const current=new Map((draft.map.categories||[]).map(x=>[x.key,x]));
+    draft.map.categories=requiredCats.map(x=>({...x,...(current.get(x.key)||{})}));
     draft.settings ||= {siteName:'SIXWORLD',searchPlaceholder:'Search...',accent:'#ff4fa3',accent2:'#42e6ee'};
     draft.feeds ||= {enabled:true, subreddit:'GTA6', xUser:'RockstarGames', maxItems:6};
     draft.access ||= {secretText:'sw_6.0.22',secretPage:'map',demoUser:'admin',demoPass:'sixworld'};
@@ -344,89 +352,81 @@
   }
 
   function renderMap(){
-    const blips=draft.map.blips;
-    const categories=(draft.map.categories||[]).filter(x=>x.key!=='all').map(x=>x.key);
-    const selected = blips.find(x=>x.id===selectedBlipId) || blips[0] || null;
-    if(selected && !selectedBlipId) selectedBlipId = selected.id;
-    $('#adminContent').innerHTML = `
+    const blips=draft.map.blips||[];
+    const categories=(draft.map.categories||[]).map(x=>x.key);
+    const selected=blips.find(x=>String(x.id)===String(selectedBlipId))||blips[0]||null;
+    if(selected&&!selectedBlipId) selectedBlipId=selected.id;
+    const tagValue=Array.isArray(selected?.tags)?selected.tags.join(', '):(selected?.tags||'');
+    $('#adminContent').innerHTML=`
       <section class="admin-section">
         <h3>Map Setup</h3>
-        <div class="admin-form">
-          <div class="admin-field full"><label>MAP IMAGE PATH / URL</label><input id="mapImageInput" value="${window.SIXWORLD.escapeHtml(draft.map.image)}"></div>
-          <div class="admin-field full"><label>MAP INTRO LABEL</label><input id="mapIntroInput" value="${window.SIXWORLD.escapeHtml(draft.map.introLabel||'VICE CITY & BEYOND')}"></div>
+        <p class="inline-note">Neue Leonida Map im Referenz-Layout. Hier verwaltest du Map-Bild, Logo, Locations, Detailkarten und Recently Discovered.</p>
+        <div class="admin-form" style="margin-top:14px">
+          <div class="admin-field"><label>MAP IMAGE PATH / URL</label><input id="mapImageInput" value="${window.SIXWORLD.escapeHtml(draft.map.image||'assets/InteractiveMap/GTA6MAP.png')}"></div>
+          <div class="admin-field"><label>LEONIDA LOGO PATH / URL</label><input id="mapLogoInput" value="${window.SIXWORLD.escapeHtml(draft.map.logo||'assets/logo/Leonidaloga.png')}"></div>
+          <div class="admin-field"><label>MAP INTRO LABEL</label><input id="mapIntroInput" value="${window.SIXWORLD.escapeHtml(draft.map.introLabel||'VICE CITY & BEYOND')}"></div>
+          <div class="admin-field"><label>LAST UPDATED</label><input id="mapUpdatedInput" value="${window.SIXWORLD.escapeHtml(draft.map.updatedDate||'May 12, 2025')}"></div>
         </div>
         <div class="map-editor-layout" style="margin-top:18px">
           <div>
-            <div class="map-editor-preview" id="mapEditPreview"><img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="">${blips.map(b=>`<button class="edit-blip ${b.category||'poi'} ${selected?.id===b.id?'selected':''}" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</button>`).join('')}</div>
-            <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW BLIP</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
-            <p class="inline-note">Klicke auf die Map, um einen Blip zu setzen. Vorhandene Blips können ausgewählt und per Drag verschoben werden.</p>
-            <div class="blip-list">${blips.map(b=>`<div class="blip-item ${selected?.id===b.id?'active':''}" data-pick-blip="${b.id}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'poi')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
+            <div class="map-editor-preview" id="mapEditPreview"><img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</button>`).join('')}</div>
+            <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW LOCATION</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
+            <p class="inline-note">Klicke auf eine freie Stelle der Map, um eine Location anzulegen. Ziehe vorhandene Marker per Drag an die gewünschte Position.</p>
+            <div class="blip-list">${blips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
           </div>
-          <div>
-            <div class="admin-form" style="grid-template-columns:1fr">
-              <div class="admin-field"><label>LABEL</label><input id="bLabel" value="${window.SIXWORLD.escapeHtml(selected?.label||'')}"></div>
-              <div class="admin-field"><label>CATEGORY</label><select id="bCat">${categories.map(c=>`<option value="${c}" ${(selected?.category||'poi')===c?'selected':''}>${c}</option>`).join('')}</select></div>
-              <div class="admin-field"><label>SYMBOL / SHORT TEXT</label><input id="bSymbol" value="${window.SIXWORLD.escapeHtml(selected?.symbol||'•')}"></div>
-              <div class="admin-field"><label>DESCRIPTION</label><textarea id="bDesc">${window.SIXWORLD.escapeHtml(selected?.description||'')}</textarea></div>
-              <div class="admin-field"><label>LINK</label><input id="bLink" value="${window.SIXWORLD.escapeHtml(selected?.link||'')}"></div>
-              <div class="admin-field"><label>X %</label><input id="bX" type="number" min="0" max="100" step="0.1" value="${selected?.x??50}"></div>
-              <div class="admin-field"><label>Y %</label><input id="bY" type="number" min="0" max="100" step="0.1" value="${selected?.y??50}"></div>
-            </div>
+          <div class="admin-map-fields">
+            <div class="admin-field full"><label>LOCATION NAME</label><input id="bLabel" value="${window.SIXWORLD.escapeHtml(selected?.label||'')}"></div>
+            <div class="admin-field"><label>CATEGORY</label><select id="bCat">${categories.map(c=>`<option value="${window.SIXWORLD.escapeHtml(c)}" ${(selected?.category||'landmark')===c?'selected':''}>${window.SIXWORLD.escapeHtml(c)}</option>`).join('')}</select></div>
+            <div class="admin-field"><label>SYMBOL / ICON TEXT</label><input id="bSymbol" value="${window.SIXWORLD.escapeHtml(selected?.symbol||'★')}"></div>
+            <div class="admin-field full"><label>DETAIL IMAGE PATH / URL</label><input id="bImage" value="${window.SIXWORLD.escapeHtml(selected?.image||'assets/nighttimepink.webp')}"></div>
+            <div class="admin-field"><label>REGION</label><input id="bRegion" value="${window.SIXWORLD.escapeHtml(selected?.region||'Leonida')}"></div>
+            <div class="admin-field"><label>DISTRICT</label><input id="bDistrict" value="${window.SIXWORLD.escapeHtml(selected?.district||'')}"></div>
+            <div class="admin-field"><label>POINTS OF INTEREST</label><input id="bPoiCount" type="number" min="0" value="${selected?.poiCount??0}"></div>
+            <div class="admin-field"><label>DISCOVERED DATE</label><input id="bDiscovered" value="${window.SIXWORLD.escapeHtml(selected?.discovered||'')}"></div>
+            <div class="admin-field full"><label>TAGS (comma separated)</label><input id="bTags" value="${window.SIXWORLD.escapeHtml(tagValue)}"></div>
+            <div class="admin-field full"><label>DESCRIPTION</label><textarea id="bDesc">${window.SIXWORLD.escapeHtml(selected?.description||'')}</textarea></div>
+            <div class="admin-field full"><label>LINK</label><input id="bLink" value="${window.SIXWORLD.escapeHtml(selected?.link||'#map')}"></div>
+            <div class="admin-field"><label>X %</label><input id="bX" type="number" min="0" max="100" step="0.1" value="${selected?.x??50}"></div>
+            <div class="admin-field"><label>Y %</label><input id="bY" type="number" min="0" max="100" step="0.1" value="${selected?.y??50}"></div>
+            <div class="admin-field"><label>FEATURED</label><select id="bFeatured"><option value="false" ${selected?.featured?'':'selected'}>false</option><option value="true" ${selected?.featured?'selected':''}>true</option></select></div>
           </div>
         </div>
       </section>
       <section class="admin-section">
         <h3>Map Filter Labels</h3>
-        <div class="admin-form">
-          ${draft.map.categories.map((cat,i)=>`
-            <div class="admin-field"><label>${window.SIXWORLD.escapeHtml(cat.key)} - LABEL</label><input data-cat-index="${i}" data-cat-field="label" value="${window.SIXWORLD.escapeHtml(cat.label||'')}"></div>
-            <div class="admin-field"><label>${window.SIXWORLD.escapeHtml(cat.key)} - LEGEND</label><input data-cat-index="${i}" data-cat-field="legend" value="${window.SIXWORLD.escapeHtml(cat.legend||'')}"></div>`).join('')}
-        </div>
+        <div class="admin-form">${(draft.map.categories||[]).map((cat,i)=>`
+          <div class="admin-field"><label>${window.SIXWORLD.escapeHtml(cat.key)} - LABEL</label><input data-cat-index="${i}" data-cat-field="label" value="${window.SIXWORLD.escapeHtml(cat.label||'')}"></div>
+          <div class="admin-field"><label>${window.SIXWORLD.escapeHtml(cat.key)} - LEGEND</label><input data-cat-index="${i}" data-cat-field="legend" value="${window.SIXWORLD.escapeHtml(cat.legend||'')}"></div>`).join('')}</div>
       </section>`;
 
-    $('#mapImageInput').oninput=e=>{ draft.map.image=e.target.value; $('#mapEditPreview img').src=e.target.value; };
-    $('#mapIntroInput').oninput=e=>{ draft.map.introLabel=e.target.value; };
-    $$('[data-cat-index]').forEach(inp=>inp.oninput=e=>{ draft.map.categories[+e.target.dataset.catIndex][e.target.dataset.catField]=e.target.value; });
+    $('#mapImageInput').oninput=e=>{draft.map.image=e.target.value;$('#mapEditPreview img').src=e.target.value};
+    $('#mapLogoInput').oninput=e=>draft.map.logo=e.target.value;
+    $('#mapIntroInput').oninput=e=>draft.map.introLabel=e.target.value;
+    $('#mapUpdatedInput').oninput=e=>draft.map.updatedDate=e.target.value;
+    $$('[data-cat-index]').forEach(inp=>inp.oninput=e=>{draft.map.categories[+e.target.dataset.catIndex][e.target.dataset.catField]=e.target.value});
 
-    function currentBlip(){ return draft.map.blips.find(x=>x.id===selectedBlipId) || null; }
+    const currentBlip=()=>draft.map.blips.find(x=>String(x.id)===String(selectedBlipId))||null;
     function syncCurrentBlip(){
-      const b=currentBlip(); if(!b) return;
-      b.label=$('#bLabel').value; b.category=$('#bCat').value; b.symbol=$('#bSymbol').value; b.description=$('#bDesc').value; b.link=$('#bLink').value; b.x=+$('#bX').value; b.y=+$('#bY').value;
-      const el=$(`.edit-blip[data-id="${b.id}"]`); if(el){ el.textContent=b.symbol; el.style.left=b.x+'%'; el.style.top=b.y+'%'; el.className=`edit-blip ${b.category} selected`; }
-      const item=$(`.blip-item[data-pick-blip="${b.id}"]`); if(item){ const label=item.querySelector('b'); const note=item.querySelector('.inline-note'); const pill=item.querySelector('.blip-pill'); if(label)label.textContent=b.label; if(note)note.textContent=`${b.category} · ${b.x}% / ${b.y}%`; if(pill)pill.textContent=b.symbol; }
+      const b=currentBlip();if(!b)return;
+      b.label=$('#bLabel').value;b.category=$('#bCat').value;b.symbol=$('#bSymbol').value;b.image=$('#bImage').value;
+      b.region=$('#bRegion').value;b.district=$('#bDistrict').value;b.poiCount=+$('#bPoiCount').value||0;b.discovered=$('#bDiscovered').value;
+      b.tags=$('#bTags').value.split(',').map(x=>x.trim()).filter(Boolean);b.description=$('#bDesc').value;b.link=$('#bLink').value;
+      b.x=+$('#bX').value;b.y=+$('#bY').value;b.featured=$('#bFeatured').value==='true';
+      const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.textContent=b.symbol;el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
     }
-    ['bLabel','bCat','bSymbol','bDesc','bLink','bX','bY'].forEach(id=>$('#'+id).oninput=syncCurrentBlip);
-
-    $$('.blip-item').forEach(item=>item.onclick=()=>{ selectedBlipId=item.dataset.pickBlip; renderMap(); });
+    ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
+    $$('.blip-item').forEach(item=>item.onclick=()=>{selectedBlipId=item.dataset.pickBlip;renderMap()});
     $$('.edit-blip').forEach(btn=>{
-      btn.onclick=e=>{ e.stopPropagation(); selectedBlipId=btn.dataset.id; renderMap(); };
+      btn.onclick=e=>{e.stopPropagation();selectedBlipId=btn.dataset.id;renderMap()};
       let moving=false;
-      btn.onpointerdown=e=>{ e.stopPropagation(); moving=true; btn.setPointerCapture(e.pointerId); selectedBlipId=btn.dataset.id; };
-      btn.onpointermove=e=>{
-        if(!moving) return;
-        const b=draft.map.blips.find(x=>x.id===btn.dataset.id); if(!b) return;
-        const r=$('#mapEditPreview').getBoundingClientRect();
-        b.x=+Math.max(0,Math.min(100,((e.clientX-r.left)/r.width*100))).toFixed(1);
-        b.y=+Math.max(0,Math.min(100,((e.clientY-r.top)/r.height*100))).toFixed(1);
-        btn.style.left=b.x+'%'; btn.style.top=b.y+'%';
-        if($('#bX')) $('#bX').value=b.x;
-        if($('#bY')) $('#bY').value=b.y;
-      };
-      btn.onpointerup=()=>{ moving=false; renderMap(); };
+      btn.onpointerdown=e=>{e.stopPropagation();moving=true;btn.setPointerCapture(e.pointerId);selectedBlipId=btn.dataset.id};
+      btn.onpointermove=e=>{if(!moving)return;const b=draft.map.blips.find(x=>String(x.id)===String(btn.dataset.id));if(!b)return;const r=$('#mapEditPreview').getBoundingClientRect();b.x=+Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)).toFixed(1);b.y=+Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)).toFixed(1);btn.style.left=b.x+'%';btn.style.top=b.y+'%';if($('#bX'))$('#bX').value=b.x;if($('#bY'))$('#bY').value=b.y};
+      btn.onpointerup=()=>{moving=false;renderMap()};
     });
-
-    $('#mapEditPreview').onclick=e=>{
-      if(e.target.closest('.edit-blip')) return;
-      const r=e.currentTarget.getBoundingClientRect();
-      const b={
-        id:uid('b'), x:+(((e.clientX-r.left)/r.width*100).toFixed(1)), y:+(((e.clientY-r.top)/r.height*100).toFixed(1)),
-        label:'New Location', category:'poi', symbol:'•', description:'', link:''
-      };
-      draft.map.blips.push(b); selectedBlipId=b.id; renderMap();
-    };
-    $('#newBlip').onclick=()=>{ const b={id:uid('b'),x:50,y:50,label:'New Location',category:'poi',symbol:'•',description:'',link:''}; draft.map.blips.push(b); selectedBlipId=b.id; renderMap(); };
-    $('#deleteBlip').onclick=()=>{ if(!selectedBlipId) return; draft.map.blips=draft.map.blips.filter(x=>x.id!==selectedBlipId); selectedBlipId=draft.map.blips[0]?.id||null; renderMap(); };
-    $('#exportMapJson').onclick=async()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(draft.map,null,2)); window.SIXWORLD.toast('Map JSON copied.'); }catch(e){ window.SIXWORLD.toast('Clipboard unavailable.'); } };
+    $('#mapEditPreview').onclick=e=>{if(e.target.closest('.edit-blip'))return;const r=e.currentTarget.getBoundingClientRect();const b={id:uid('loc'),x:+(((e.clientX-r.left)/r.width*100).toFixed(1)),y:+(((e.clientY-r.top)/r.height*100).toFixed(1)),label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
+    $('#newBlip').onclick=()=>{const b={id:uid('loc'),x:50,y:50,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
+    $('#deleteBlip').onclick=()=>{if(!selectedBlipId)return;draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));selectedBlipId=draft.map.blips[0]?.id||null;renderMap()};
+    $('#exportMapJson').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(draft.map,null,2));window.SIXWORLD.toast('Map JSON copied.')}catch(e){window.SIXWORLD.toast('Clipboard unavailable.')}};
   }
 
   function renderSettings(){

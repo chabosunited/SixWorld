@@ -1,58 +1,50 @@
-# SIXWORLD v3
+# SIXWORLD v9 — Map Reference Update
 
-Professionelle GTA VI Fan-Website im Stil deiner Referenz.
+Diese Version baut auf dem funktionierenden v8 Admin-Editor auf und enthält das neue Map-Layout sowie die neuen Assets.
 
-## Highlights
+## Neu in v9
 
-- Startseite im SIXWORLD / GTA VI Stil
-- Hero/Header als automatische Slideshow
-- Seiten für Home, Leaks, Screenshots, News und Map
-- Video-Einbindung per Streamable, Google Drive, YouTube oder direktem MP4/WebM-Link
-- Screenshot-Galerie aus lokalen Assets und externen URLs
-- News-Bereich mit manuellen Einträgen plus Live-Feeds für Reddit und X
-- Interaktive Map mit Zoom, Drag, Filter-Chips, Legende und Blip-Detailbox
-- Versteckter Admin-Zugang auf der Map-Seite
-- Vollwertiges Admin Panel zum Verwalten von Hero, Videos, Screenshots, News, Map, Settings und Access
-- Live-Feed-Import direkt im Admin Panel
-- Cloudflare Pages + Functions + D1 vorbereitet
+- dunklerer Website-Hintergrund
+- dünne weiß/silberne Rahmen um Hero, Panels, Cards und Map-Elemente
+- Datums-/Meta-Untertexte in Pink/Hell-Lila
+- Footer Counter: `VISITORS: X (Y HITS)`
+  - Visitors = neue Browser-Besucher (Cookie-basiert)
+  - Hits = Klicks auf Website-Links, Buttons, Navigation, Map-Locations usw.
+- neue Interactive-Map-Seite im Referenz-Aufbau:
+  - links Map Filters
+  - Mitte große Leonida Map
+  - Leonida Logo oben links in der Map
+  - Marker mit Kategorien
+  - Recently Discovered unter der Map
+  - rechts Location-Detailkarte mit Bild, Beschreibung, Tags und Fakten
+  - Map Legend
+- Admin Panel für neue Map erweitert:
+  - Location Image
+  - Region
+  - District
+  - Points of Interest
+  - Discovered Date
+  - Tags
+  - Featured
+  - Kategorie
+  - Position X/Y
+  - Map Logo / Map Updated Date
+- alte Asset-Pfade aus D1 werden automatisch auf die neuen kürzeren Dateinamen migriert.
 
-## Lokaler Demo-Zugang
+## Bestehende Cloudflare/D1 Installation
 
-Map-Seite öffnen und unten den kleinen Trigger anklicken:
+Du musst deine bestehende `site_content` Tabelle nicht neu erstellen.
 
-- Trigger: `sw_6.0.22`
-- Benutzer: `admin`
-- Passwort: `sixworld`
+Der neue `/api/stats` Endpoint legt die `site_stats` Tabelle beim ersten Aufruf automatisch an.
 
-## D1 / Deployment
+Optional kannst du `migration_v9.sql` einmal in der D1 Console ausführen.
 
-1. D1-Datenbank anlegen
-2. `wrangler.toml.example` mit deiner Datenbank-ID ausfüllen
-3. Schema ausführen
-4. Seed-Daten importieren
-5. Environment-Variablen setzen
+## Deployment
 
-### Schema importieren
+Den kompletten Inhalt dieser Version in dein vorhandenes GitHub Repo hochladen und vorhandene Dateien ersetzen. Cloudflare Pages deployed danach automatisch.
 
-```bash
-npx wrangler d1 execute sixworld-db --remote --file=schema.sql
-```
+Anschließend im Browser einmal `Strg + F5` ausführen.
 
-### Seed-Daten importieren
+## Wichtig zu D1
 
-```bash
-npx wrangler d1 execute sixworld-db --remote --file=seed.sql
-```
-
-### Benötigte Environment Variablen
-
-- `ADMIN_SESSION_SECRET`
-- `ADMIN_USERNAME`
-- `ADMIN_PASSWORD_HASH` oder alternativ `ADMIN_PASSWORD`
-- `X_BEARER_TOKEN` (optional, nur für X Feed)
-
-Wenn `X_BEARER_TOKEN` nicht gesetzt ist, laufen die Reddit-Feeds trotzdem weiter und die manuell gepflegten News bleiben sichtbar.
-
-## v8 Admin edit/save fix
-
-The content editor was rebuilt so Hero Slides, Leaks/Videos, Screenshots and News all use the same delegated update handler. UPDATE CONTENT now writes the edited record to D1 immediately, uses the persisted D1 response as the source of truth, and shows a visible publish status. Cache-busting is v8.
+Deine bereits vorhandenen Inhalte bleiben erhalten. Beim Laden werden alte Asset-Namen clientseitig auf die neuen Dateinamen angepasst. Sobald du danach im Admin Panel speicherst, werden die normalisierten Daten auch wieder in D1 gespeichert.

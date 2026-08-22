@@ -24,15 +24,58 @@
     app.content.leaks ||= [];
     app.content.screenshots ||= [];
     app.content.news ||= [];
-    app.content.map ||= {image:'assets/InteractiveMap/GTA6MAP.png',introLabel:'VICE CITY & BEYOND',categories:[],blips:[]};
-    app.content.map.categories ||= [
-      {key:'all',label:'ALL',legend:'ALL LOCATIONS',short:'ALL'},
-      {key:'city',label:'CITY',legend:'CITY / AREA',short:'VC'},
-      {key:'poi',label:'POI',legend:'POINT OF INTEREST',short:'POI'},
-      {key:'leak',label:'LEAK',legend:'LEAK / RUMOR',short:'?'}
-    ];
-    app.content.map.blips ||= [];
     app.content.feeds ||= {enabled:true, subreddit:'GTA6', xUser:'RockstarGames', maxItems:6};
+
+    // Asset names were shortened in v9. Migrate older D1 content automatically.
+    const legacyPaths={
+      'assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg':'assets/gtaimage6.jpg',
+      'assets/GTA_6_New_Release_Date_Explained_d65d2837da.png':'assets/gtaimage3.png',
+      'assets/GTA-6-artwork-characters-larger.jpg':'assets/gtaimage4.jpg',
+      'assets/pngs/gta_vi_6_characters_transparent_png_by_wallpaper_background_dlqugsx-pre.png':'assets/pngs/gta6characters.png',
+      'assets/pngs/gta-vi-3d-v0-kriobc9v092e1.webp':'assets/pngs/gtavilogocustom.webp'
+    };
+    const migratePath=v=>legacyPaths[v]||v;
+    app.content.hero.forEach(x=>x.image=migratePath(x.image));
+    app.content.leaks.forEach(x=>x.thumb=migratePath(x.thumb));
+    app.content.screenshots.forEach(x=>x.image=migratePath(x.image));
+    app.content.news.forEach(x=>x.image=migratePath(x.image));
+
+    app.content.map ||= {};
+    const m=app.content.map;
+    m.image='assets/InteractiveMap/GTA6MAP.png';
+    m.logo ||= 'assets/logo/Leonidaloga.png';
+    m.introLabel ||= 'VICE CITY & BEYOND';
+    m.updatedDate ||= 'May 12, 2025';
+    const newCategories=[
+      {key:'district',label:'DISTRICTS',legend:'Districts',short:'▦',icon:'▦'},
+      {key:'landmark',label:'LANDMARKS',legend:'Landmarks',short:'★',icon:'☆'},
+      {key:'activity',label:'ACTIVITIES',legend:'Activities',short:'⚑',icon:'⚑'},
+      {key:'shop',label:'SHOPS',legend:'Shops',short:'▣',icon:'▣'},
+      {key:'safehouse',label:'SAFEHOUSES',legend:'Safehouses',short:'⌂',icon:'⌂'},
+      {key:'secret',label:'SECRETS',legend:'Secrets',short:'◇',icon:'◇'},
+      {key:'transport',label:'TRANSPORT',legend:'Transport',short:'▰',icon:'▰'}
+    ];
+    const keys=new Set((m.categories||[]).map(x=>x.key));
+    if(!keys.has('landmark') || !keys.has('activity') || !keys.has('shop')) m.categories=newCategories;
+    else m.categories=newCategories.map(def=>({...def,...((m.categories||[]).find(x=>x.key===def.key)||{})}));
+
+    const sampleDetails=[
+      {label:'Ocean Drive',category:'landmark',symbol:'★',x:66,y:40,image:'assets/nighttimepink.webp',region:'Vice City',district:'South Beach',description:"The iconic strip of Ocean Drive is the heartbeat of Vice City's nightlife. Neon lights, luxury hotels, and non-stop energy day and night.",tags:['LANDMARK','NIGHTLIFE','SHOPPING'],poiCount:12,discovered:'May 8, 2025',featured:true},
+      {label:'Vice City Pier',category:'landmark',symbol:'★',x:61,y:52,image:'assets/gtaimage2.png',region:'Vice City',district:'South Beach',description:'A bright waterfront landmark with rides, nightlife and ocean views.',tags:['LANDMARK','PIER'],poiCount:7,discovered:'May 9, 2025'},
+      {label:'Grassrivers Airboats',category:'activity',symbol:'⚑',x:35,y:57,image:'assets/daytime.jpg',region:'Leonida',district:'Grassrivers',description:'Airboat tours and swamp activities across the Grassrivers wetlands.',tags:['ACTIVITY','OUTDOORS'],poiCount:5,discovered:'May 10, 2025'},
+      {label:'Leonida Mall',category:'shop',symbol:'▣',x:50,y:59,image:'assets/gtaimage1.png',region:'Leonida',district:'Vice-Dale County',description:'A major shopping destination with stores, restaurants and entertainment.',tags:['SHOP','MALL'],poiCount:18,discovered:'May 10, 2025'},
+      {label:'Starfish Island',category:'safehouse',symbol:'⌂',x:54,y:69,image:'assets/gtaimage4.jpg',region:'Vice City',district:'Starfish Island',description:'Luxury properties and secluded safehouses in an exclusive island neighborhood.',tags:['SAFEHOUSE','LUXURY'],poiCount:9,discovered:'May 11, 2025'},
+      {label:'Underwater Ruins',category:'secret',symbol:'◇',x:78,y:72,image:'assets/nighttime.webp',region:'Leonida',district:'Atlantic Coast',description:'A mysterious underwater point of interest hidden off the coast.',tags:['SECRET','UNDERWATER'],poiCount:3,discovered:'May 12, 2025'},
+      {label:'Port Gellhorn Transit',category:'transport',symbol:'▰',x:30,y:37,image:'assets/gtaimage3.png',region:'Leonida',district:'Port Gellhorn',description:'A transport hub connecting western Leonida to the main metropolitan area.',tags:['TRANSPORT'],poiCount:6,discovered:'May 7, 2025'}
+    ];
+    // Older installations only have 4 simple blips. Preserve them but enrich/migrate categories.
+    const oldMap={city:'district',poi:'landmark',leak:'secret'};
+    m.blips=(m.blips||[]).map((b,i)=>{
+      const fallback=sampleDetails[i%sampleDetails.length];
+      return {...fallback,...b,category:oldMap[b.category]||b.category||fallback.category,image:migratePath(b.image||fallback.image),region:b.region||fallback.region,district:b.district||fallback.district,tags:Array.isArray(b.tags)?b.tags:fallback.tags,poiCount:b.poiCount??fallback.poiCount,discovered:b.discovered||fallback.discovered,description:b.description||fallback.description};
+    });
+    const present=new Set(m.blips.map(x=>String(x.label).toLowerCase()));
+    sampleDetails.forEach((b,i)=>{ if(!present.has(b.label.toLowerCase())) m.blips.push({id:`map_v9_${i+1}`,...b}); });
   }
 
   const iconSvg = {
@@ -42,7 +85,7 @@
     map:'<path d="M12 22s7-6.4 7-13a7 7 0 1 0-14 0c0 6.6 7 13 7 13Z"/><circle cx="12" cy="9" r="2.4"/>'
   };
   const icon = type => `<svg viewBox="0 0 24 24" aria-hidden="true">${iconSvg[type]||''}</svg>`;
-  const mapClass = cat => ['city','poi','leak'].includes(cat) ? cat : 'poi';
+  const mapClass = cat => ['district','landmark','activity','shop','safehouse','secret','transport'].includes(cat) ? cat : 'landmark';
 
   function parseTime(v){ const t = Date.parse(v||''); return Number.isFinite(t) ? t : 0; }
   function dedupeNews(items){
@@ -185,52 +228,68 @@
       </a>`).join('');
   }
 
-  function getMapCategories(){
-    return app.content.map?.categories || [
-      {key:'all',label:'ALL'},
-      {key:'city',label:'CITY'},
-      {key:'poi',label:'POI'},
-      {key:'leak',label:'LEAK'}
-    ];
-  }
+  function getMapCategories(){ return app.content.map?.categories || []; }
+
+  const mapCategoryStyle={
+    district:{icon:'▦',label:'Districts'}, landmark:{icon:'★',label:'Landmarks'}, activity:{icon:'⚑',label:'Activities'},
+    shop:{icon:'▣',label:'Shops'}, safehouse:{icon:'⌂',label:'Safehouses'}, secret:{icon:'◇',label:'Secrets'}, transport:{icon:'▰',label:'Transport'}
+  };
 
   function renderMapFilters(){
-    const filters = getMapCategories();
-    $('#mapFilters').innerHTML = filters.map((f,i)=>`<button class="chip ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}">${escapeHtml(f.label)}</button>`).join('');
-    $$('.chip[data-map-filter]').forEach(b=>b.onclick=()=>{
-      $$('.chip[data-map-filter]').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      const f=b.dataset.mapFilter;
-      $$('.map-blip').forEach(x=>x.classList.toggle('hidden', f!=='all' && x.dataset.category!==f));
+    const filters=getMapCategories();
+    $('#mapFilters').innerHTML=filters.map((f,i)=>`<button class="map-filter-btn ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}"><span class="map-filter-icon ${mapClass(f.key)}">${escapeHtml(f.icon||mapCategoryStyle[f.key]?.icon||'•')}</span><span>${escapeHtml(f.label||f.key)}</span></button>`).join('');
+    $$('.map-filter-btn[data-map-filter]').forEach(b=>b.onclick=()=>{
+      const already=b.classList.contains('active');
+      $$('.map-filter-btn').forEach(x=>x.classList.remove('active'));
+      if(!already) b.classList.add('active');
+      const f=already?'all':b.dataset.mapFilter;
+      $$('.map-blip').forEach(x=>x.classList.toggle('hidden',f!=='all'&&x.dataset.category!==f));
     });
   }
 
   function renderMapLegend(){
-    const items = getMapCategories().filter(x=>x.key!=='all');
-    $('#mapLegend').innerHTML = items.map(cat=>`<div class="legend-row"><i class="legend-pin ${mapClass(cat.key)}">${escapeHtml(cat.short||cat.label?.slice(0,3)||cat.key.toUpperCase())}</i><span>${escapeHtml(cat.legend || cat.label || cat.key)}</span></div>`).join('');
+    $('#mapLegend').innerHTML=getMapCategories().filter(x=>x.key!=='district').map(cat=>`<div class="legend-ref-item"><i class="legend-pin ${mapClass(cat.key)}">${escapeHtml(cat.short||cat.icon||'•')}</i><span>${escapeHtml(cat.legend||cat.label||cat.key)}</span></div>`).join('');
   }
 
+  function mapTagsHtml(tags=[]){ return tags.slice(0,4).map(t=>`<span>${escapeHtml(t)}</span>`).join(''); }
+
   function updateMapDetail(blip){
-    const detail = $('#mapDetail');
-    if(!blip){ detail.innerHTML = '<b>Select a blip</b><p>Click any marker to view its details here.</p>'; return; }
-    detail.innerHTML = `<b>${escapeHtml(blip.label||'Location')}</b><p>${escapeHtml(blip.description||'No description yet.')}</p>${blip.link?`<a href="${escapeHtml(blip.link)}" target="_blank" rel="noopener">OPEN LINK ↗</a>`:''}`;
-    $('#mapCoords').textContent = blip.label || (app.content.map?.introLabel || 'VICE CITY & BEYOND');
+    if(!blip) return;
+    app.selectedMapBlipId=blip.id;
+    $('#mapInfoPanel')?.classList.remove('collapsed');
+    $('#mapDetailImage').src=blip.image||'assets/nighttimepink.webp';
+    $('#mapDetailTitle').textContent=(blip.label||'LOCATION').toUpperCase();
+    $('#mapDetailRegion').textContent=(blip.region||'LEONIDA').toUpperCase();
+    $('#mapDetailDescription').textContent=blip.description||'No description yet.';
+    $('#mapDetailTags').innerHTML=mapTagsHtml(blip.tags||[mapCategoryStyle[blip.category]?.label||blip.category]);
+    $('#mapDetailFacts').innerHTML=`
+      <div><span>⌖ &nbsp; REGION</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
+      <div><span>▦ &nbsp; DISTRICT</span><b>${escapeHtml(blip.district||'—')}</b></div>
+      <div><span>◇ &nbsp; POINTS OF INTEREST</span><b>${escapeHtml(blip.poiCount??'—')}</b></div>
+      <div><span>▣ &nbsp; DISCOVERED</span><b>${escapeHtml(blip.discovered||'—')}</b></div>`;
+    $('#mapFeaturedBadge').style.display=blip.featured?'inline-flex':'none';
+    $$('.map-blip').forEach(x=>x.classList.toggle('selected',String(x.dataset.id)===String(blip.id)));
+    $$('.recent-card').forEach(x=>x.classList.toggle('selected',String(x.dataset.blipId)===String(blip.id)));
+  }
+
+  function renderRecentDiscovered(){
+    const items=(app.content.map?.blips||[]).filter(x=>x.image).slice(-6).reverse();
+    $('#recentDiscovered').innerHTML=items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${escapeHtml(mapCategoryStyle[b.category]?.icon||'•')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('');
+    $$('.recent-card').forEach(card=>card.onclick=()=>{ const b=(app.content.map.blips||[]).find(x=>String(x.id)===card.dataset.blipId); if(b) updateMapDetail(b); });
   }
 
   function renderMap(){
     const m=app.content.map||{};
-    $('#mapImage').src = m.image || 'assets/InteractiveMap/GTA6MAP.png';
-    $('#mapBlips').innerHTML = (m.blips||[]).map(b=>`
-      <button class="map-blip ${mapClass(b.category)}" data-id="${escapeHtml(b.id)}" data-category="${escapeHtml(b.category||'poi')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%">${escapeHtml(b.symbol||'•')}</button>`).join('');
+    $('#mapImage').src=m.image||'assets/InteractiveMap/GTA6MAP.png';
+    const logo=$('.leonida-map-logo'); if(logo) logo.src=m.logo||'assets/logo/Leonidaloga.png';
+    $('#mapUpdatedDate').textContent=(m.updatedDate||'May 12, 2025').toUpperCase();
+    $('#mapBlips').innerHTML=(m.blips||[]).map(b=>`<button class="map-blip ${mapClass(b.category)}" data-id="${escapeHtml(b.id)}" data-category="${escapeHtml(b.category||'landmark')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%"><span>${escapeHtml(b.symbol||mapCategoryStyle[b.category]?.icon||'•')}</span></button>`).join('');
     renderMapFilters();
     renderMapLegend();
-    $('#mapCoords').textContent = m.introLabel || 'VICE CITY & BEYOND';
-    updateMapDetail((m.blips||[])[0]||null);
-    $$('.map-blip').forEach(el=>el.onclick=e=>{
-      e.stopPropagation();
-      const blip = (m.blips||[]).find(x=>x.id===el.dataset.id);
-      updateMapDetail(blip);
-    });
+    renderRecentDiscovered();
+    const selected=(m.blips||[]).find(x=>String(x.id)===String(app.selectedMapBlipId)) || (m.blips||[]).find(x=>x.featured) || m.blips?.[0];
+    if(selected) updateMapDetail(selected);
+    $$('.map-blip').forEach(el=>el.onclick=e=>{ e.stopPropagation(); const b=(m.blips||[]).find(x=>String(x.id)===String(el.dataset.id)); if(b) updateMapDetail(b); });
   }
 
   function applySettings(){
@@ -321,6 +380,16 @@
   $('#zoomIn').onclick=()=>{ mapScale=Math.min(3,mapScale+.2); applyMap(); };
   $('#zoomOut').onclick=()=>{ mapScale=Math.max(.65,mapScale-.2); applyMap(); };
   $('#zoomReset').onclick=resetMap;
+  $('#zoomFullscreen')?.addEventListener('click',()=>{
+    const viewport=$('#mapViewport');
+    if(!document.fullscreenElement) viewport?.requestFullscreen?.(); else document.exitFullscreen?.();
+  });
+  $('#mapResetFilters')?.addEventListener('click',()=>{
+    $$('.map-filter-btn').forEach(x=>x.classList.remove('active'));
+    $$('.map-blip').forEach(x=>x.classList.remove('hidden'));
+    resetMap();
+  });
+  $('#mapInfoClose')?.addEventListener('click',()=>$('#mapInfoPanel')?.classList.toggle('collapsed'));
   $('#mapViewport').addEventListener('wheel',e=>{ e.preventDefault(); mapScale=Math.min(3,Math.max(.65,mapScale+(e.deltaY<0?.12:-.12))); applyMap(); }, {passive:false});
   $('#mapViewport').addEventListener('pointerdown',e=>{ if(e.target.closest('.map-blip')) return; drag=true; sx=e.clientX-mapX; sy=e.clientY-mapY; $('#mapViewport').classList.add('dragging'); e.currentTarget.setPointerCapture(e.pointerId); });
   $('#mapViewport').addEventListener('pointermove',e=>{ if(!drag) return; mapX=e.clientX-sx; mapY=e.clientY-sy; applyMap(); });
@@ -335,6 +404,37 @@
 
   $('#profileBtn').addEventListener('click',()=>toast('Community profiles can be connected as a later module.'));
   $('#syncNewsBtn').addEventListener('click',()=>refreshFeeds({silent:false}));
+
+  async function loadSiteStats(){
+    try{
+      const r=await fetch('/api/stats',{cache:'no-store',credentials:'same-origin'});
+      if(!r.ok) throw new Error('stats unavailable');
+      const d=await r.json();
+      $('#visitorCount').textContent=Number(d.visitors||0).toLocaleString('de-DE');
+      $('#hitCount').textContent=Number(d.hits||0).toLocaleString('de-DE');
+      app.stats=d;
+    }catch(e){
+      const local=JSON.parse(localStorage.getItem('sixworld_local_stats')||'{"visitors":1,"hits":0}');
+      if(!localStorage.getItem('sixworld_local_stats')) localStorage.setItem('sixworld_local_stats',JSON.stringify(local));
+      $('#visitorCount').textContent=Number(local.visitors||1).toLocaleString('de-DE');
+      $('#hitCount').textContent=Number(local.hits||0).toLocaleString('de-DE');
+    }
+  }
+
+  function registerHit(){
+    if($('#adminOverlay')?.classList.contains('open')) return;
+    try{
+      fetch('/api/stats',{method:'POST',credentials:'same-origin',keepalive:true}).then(r=>r.ok?r.json():null).then(d=>{
+        if(d){ $('#visitorCount').textContent=Number(d.visitors||0).toLocaleString('de-DE'); $('#hitCount').textContent=Number(d.hits||0).toLocaleString('de-DE'); }
+      }).catch(()=>{});
+    }catch(e){}
+  }
+
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#adminOverlay,#loginModal,#adminTrigger,#siteCounter')) return;
+    const clickable=e.target.closest('a,button,[data-video-id],[data-shot-id],.map-blip,.recent-card');
+    if(clickable) registerHit();
+  },true);
 
   function toast(msg){
     const t=$('#toast');
@@ -355,6 +455,7 @@
     normalizeContent();
     renderAll();
     route();
+    loadSiteStats();
     refreshFeeds({silent:true}).then(()=>{ renderHome(); renderNews(); }).catch(()=>{});
   })();
 })();
