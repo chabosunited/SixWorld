@@ -946,3 +946,131 @@ body::before{
   .admin-map-toolbar button{width:40px;height:40px}
   .admin-map-zoom-label{left:8px;bottom:8px}
 }
+
+/* ===== SIXWORLD v13: compact desktop map page ===== */
+@media (min-width:921px){
+  /* Keep the whole desktop map experience comfortably inside one screen. */
+  .map-page{padding-top:12px}
+  .map-reference-layout{align-items:stretch}
+
+  /* The map viewport is intentionally shorter; the map remains freely draggable/zoomable. */
+  .map-reference-viewport{
+    height:clamp(455px,54vh,590px);
+    min-height:455px;
+    max-height:590px;
+    overflow:hidden;
+  }
+
+  /* Side boxes follow the center column instead of forcing a full-viewport height. */
+  .map-filter-panel{
+    min-height:0;
+    height:auto;
+  }
+  .map-info-panel{
+    min-height:0;
+    height:auto;
+  }
+
+  /* Compact the controls and information so the side panels do not feel overly tall. */
+  .map-filter-panel{padding:14px 14px 12px}
+  .map-filter-title{margin-bottom:10px}
+  .map-filter-btn{height:50px}
+  .map-reset-btn{height:42px}
+
+  .map-info-image-wrap{height:150px}
+  .map-info-content{padding:14px 16px}
+  .map-info-content h2{font-size:26px}
+  .map-info-content>p{margin:12px 0;font-size:12px;line-height:1.55}
+  .map-tags{padding-bottom:12px}
+  .map-facts{gap:9px;padding-top:12px}
+  .map-legend-reference{padding:12px 16px 14px}
+  .map-legend-head{margin-bottom:10px}
+  .map-legend-grid{gap:8px}
+
+  /* Shorter recently-discovered strip underneath the map. */
+  .recent-discovered-wrap{padding:9px 12px 10px}
+  .recent-title{margin-bottom:7px}
+  .recent-card>img{height:58px}
+  .recent-card-copy{padding:6px 7px 7px}
+  .recent-card-copy b{margin-bottom:3px}
+
+  .map-data-note{margin:8px 0 0}
+}
+
+@media (min-width:1501px){
+  .map-reference-viewport{
+    height:clamp(470px,55vh,610px);
+    min-height:470px;
+    max-height:610px;
+  }
+}
+
+
+/* ===== SIXWORLD v14: restore reference map proportions and crisp fit ===== */
+:root{--map-panel-radius:18px}
+@media (min-width:921px){
+  .map-page{padding-top:12px}
+  .map-reference-layout{
+    display:grid!important;
+    grid-template-columns:240px minmax(0,1fr) 320px!important;
+    gap:18px!important;
+    align-items:stretch!important;
+    width:100%;
+    margin:0;
+  }
+  .map-filter-panel,
+  .map-info-panel,
+  .map-center-column{
+    min-height:0!important;
+    height:auto!important;
+    border-radius:var(--map-panel-radius)!important;
+  }
+  .map-filter-panel{padding:18px 18px 14px!important}
+  .map-filter-title{margin-bottom:16px!important}
+  .map-filter-btn{height:54px!important}
+  .map-reset-btn{margin-top:auto;height:48px!important}
+  .map-center-column{overflow:hidden!important}
+  .map-reference-viewport{
+    height:clamp(575px,69vh,760px)!important;
+    min-height:575px!important;
+    max-height:760px!important;
+    overflow:hidden!important;
+    border-bottom:1px solid var(--silver-line);
+    background:#07101f!important;
+  }
+  .map-reference-viewport .map-stage{width:auto!important;height:auto!important;max-width:none!important}
+  .map-reference-viewport .map-stage img{
+    width:auto!important;
+    height:auto!important;
+    max-width:none!important;
+    max-height:none!important;
+    object-fit:unset!important;
+    image-rendering:auto;
+    filter:saturate(1.04) contrast(1.02)!important;
+  }
+  .leonida-map-logo{left:26px!important;top:24px!important;width:168px!important}
+  .map-scale-ui{left:26px!important;top:126px!important}
+  .map-zoom{right:16px!important;bottom:16px!important}
+  .recent-discovered-wrap{padding:14px 16px 16px!important;background:rgba(7,15,29,.98)!important}
+  .recent-title{margin-bottom:12px!important}
+  .recent-discovered{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px!important}
+  .recent-card>img{height:92px!important}
+  .recent-card-copy{padding:9px 10px 10px!important}
+  .recent-card-copy b{font-size:13px!important;margin-bottom:5px!important}
+  .recent-card-copy small{font-size:10px!important}
+  .map-info-image-wrap{height:176px!important}
+  .map-info-content{padding:18px 18px 16px!important}
+  .map-info-content h2{font-size:25px!important}
+  .map-info-content>p{margin:14px 0 14px!important;font-size:13px!important;line-height:1.65!important}
+  .map-tags{padding-bottom:14px!important}
+  .map-facts{gap:11px!important;padding-top:14px!important}
+  .map-legend-reference{padding:16px 18px 18px!important}
+  .map-legend-grid{gap:10px 8px!important}
+  .map-data-note{margin:12px 0 2px!important}
+}
+@media (min-width:1501px){
+  .map-reference-layout{grid-template-columns:250px minmax(0,1fr) 324px!important}
+}
+@media (max-width:920px){
+  .map-reference-viewport .map-stage img{width:auto!important;height:auto!important}
+}

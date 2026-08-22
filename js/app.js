@@ -304,6 +304,7 @@
   function renderMap(){
     const m=app.content.map||{};
     $('#mapImage').src=m.image||'assets/InteractiveMap/GTA6MAP.png';
+    requestAnimationFrame(()=>setTimeout(updateMapStageMetrics,30));
     const logo=$('.leonida-map-logo'); if(logo) logo.src=m.logo||'assets/logo/Leonidaloga.png';
     $('#mapUpdatedDate').textContent=(m.updatedDate||'May 12, 2025').toUpperCase();
     $('#mapBlips').innerHTML=(m.blips||[]).map(b=>`<button class="map-blip ${mapClass(b.category)}" data-id="${escapeHtml(b.id)}" data-category="${escapeHtml(b.category||'landmark')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%"><span>${mapIconSvg(b.category,'blip-icon')}</span></button>`).join('');
@@ -311,6 +312,8 @@
     renderMapLegend();
     renderRecentDiscovered();
     const selected=(m.blips||[]).find(x=>String(x.id)===String(app.selectedMapBlipId)) || (m.blips||[]).find(x=>x.featured) || m.blips?.[0];
+    updateMapStageMetrics();
+    resetMap();
     if(selected) updateMapDetail(selected);
     $$('.map-blip').forEach(el=>el.onclick=e=>{ e.stopPropagation(); const b=(m.blips||[]).find(x=>String(x.id)===String(el.dataset.id)); if(b) updateMapDetail(b); });
   }
@@ -410,15 +413,29 @@
   addEventListener('hashchange', route);
 
   let mapScale=1, mapX=0, mapY=0, drag=false, sx=0, sy=0, mapMarkersVisible=true;
-  function applyMap(){ const stage=$('#mapStage'); if(stage) stage.style.transform=`translate(calc(-50% + ${mapX}px), calc(-50% + ${mapY}px)) scale(${mapScale})`; }
+  let mapBaseScale=1, mapNaturalW=0, mapNaturalH=0;
+  function updateMapStageMetrics(){
+    const stage=$('#mapStage'), viewport=$('#mapViewport'), img=$('#mapImage');
+    if(!stage || !viewport || !img || !img.naturalWidth || !img.naturalHeight) return;
+    mapNaturalW=img.naturalWidth;
+    mapNaturalH=img.naturalHeight;
+    mapBaseScale=Math.min(viewport.clientWidth / mapNaturalW, viewport.clientHeight / mapNaturalH) || 1;
+    stage.style.width=mapNaturalW + 'px';
+    stage.style.height=mapNaturalH + 'px';
+    applyMap();
+  }
+  function applyMap(){
+    const stage=$('#mapStage');
+    if(stage) stage.style.transform=`translate(calc(-50% + ${mapX}px), calc(-50% + ${mapY}px)) scale(${(mapBaseScale * mapScale).toFixed(4)})`;
+  }
   function resetMap(){ mapScale=1; mapX=0; mapY=0; applyMap(); }
   function bindMapTool(selector,handler){
     const el=$(selector); if(!el) return;
     el.addEventListener('pointerdown',e=>{e.stopPropagation();});
     el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();handler(el);});
   }
-  bindMapTool('#zoomIn',()=>{mapScale=Math.min(3,mapScale+.2);applyMap();});
-  bindMapTool('#zoomOut',()=>{mapScale=Math.max(.65,mapScale-.2);applyMap();});
+  bindMapTool('#zoomIn',()=>{mapScale=Math.min(2.4,mapScale+.15);applyMap();});
+  bindMapTool('#zoomOut',()=>{mapScale=Math.max(.85,mapScale-.15);applyMap();});
   bindMapTool('#mapLayers',el=>{
     mapMarkersVisible=!mapMarkersVisible;
     const layer=$('#mapBlips');
@@ -443,12 +460,14 @@
     resetMap();
   });
   $('#mapInfoClose')?.addEventListener('click',()=>$('#mapInfoPanel')?.classList.toggle('collapsed'));
-  $('#mapViewport').addEventListener('wheel',e=>{ e.preventDefault(); mapScale=Math.min(3,Math.max(.65,mapScale+(e.deltaY<0?.12:-.12))); applyMap(); }, {passive:false});
+  $('#mapViewport').addEventListener('wheel',e=>{ e.preventDefault(); mapScale=Math.min(2.4,Math.max(.85,mapScale+(e.deltaY<0?.1:-.1))); applyMap(); }, {passive:false});
   $('#mapViewport').addEventListener('pointerdown',e=>{ if(e.target.closest('.map-blip,.map-zoom')) return; drag=true; sx=e.clientX-mapX; sy=e.clientY-mapY; $('#mapViewport').classList.add('dragging'); e.currentTarget.setPointerCapture(e.pointerId); });
   $('#mapViewport').addEventListener('pointermove',e=>{ if(!drag) return; mapX=e.clientX-sx; mapY=e.clientY-sy; applyMap(); });
   $('#mapViewport').addEventListener('pointerup',()=>{ drag=false; $('#mapViewport').classList.remove('dragging'); });
   $('#mapViewport').addEventListener('pointercancel',()=>{ drag=false; $('#mapViewport').classList.remove('dragging'); });
   $('#mapImage')?.addEventListener('dragstart',e=>e.preventDefault());
+  $('#mapImage')?.addEventListener('load',()=>{ updateMapStageMetrics(); resetMap(); });
+  addEventListener('resize',()=>{ updateMapStageMetrics(); });
 
   // Public content protection: suppress the browser context menu and native media dragging.
   // This only discourages casual downloads; browser-delivered assets can never be made impossible to save.
