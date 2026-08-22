@@ -358,6 +358,18 @@
     e.stopPropagation();
     setMobileMenu(!$('#headerMenu').classList.contains('open'));
   });
+  $('#mobileSearchBtn')?.addEventListener('click',e=>{
+    e.stopPropagation();
+    setMobileMenu(true);
+    setTimeout(()=>$('#globalSearch')?.focus(),80);
+  });
+  $('#mobileProfileBtn')?.addEventListener('click',e=>{
+    e.stopPropagation();
+    toast('Community profiles can be connected as a later module.');
+  });
+  $('#mobileFilterToggle')?.addEventListener('click',()=>{
+    $('.map-filter-panel')?.classList.toggle('expanded');
+  });
   $('#headerMenu')?.addEventListener('click',e=>e.stopPropagation());
   document.addEventListener('click',()=>{ if(matchMedia('(max-width:920px)').matches) setMobileMenu(false); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') setMobileMenu(false); });

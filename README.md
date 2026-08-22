@@ -48,3 +48,17 @@ Anschließend im Browser einmal `Strg + F5` ausführen.
 ## Wichtig zu D1
 
 Deine bereits vorhandenen Inhalte bleiben erhalten. Beim Laden werden alte Asset-Namen clientseitig auf die neuen Dateinamen angepasst. Sobald du danach im Admin Panel speicherst, werden die normalisierten Daten auch wieder in D1 gespeichert.
+
+## v10 – Map desktop + mobile layout fix
+
+- Desktop map center column now follows the actual 2048×1402 map aspect ratio, so the map panel no longer has large unused side gutters.
+- Left filter panel and right location panel sit closer to the reference composition.
+- Mobile map page rebuilt to match the supplied mobile reference:
+  - logo + search + profile + burger in the top bar
+  - Map / Explore Leonida heading
+  - compact horizontal filter chips
+  - tall, centered map viewport that crops only the empty dark margins of the landscape source map
+  - Selected Location card directly below the map
+  - Map Legend card below the selected location
+  - desktop Recently Discovered carousel hidden on mobile for a cleaner reference-style layout
+- Mobile Filters button expands/collapses the full filter set.
