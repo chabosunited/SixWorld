@@ -52,3 +52,7 @@ npx wrangler d1 execute sixworld-db --remote --file=seed.sql
 - `X_BEARER_TOKEN` (optional, nur für X Feed)
 
 Wenn `X_BEARER_TOKEN` nicht gesetzt ist, laufen die Reddit-Feeds trotzdem weiter und die manuell gepflegten News bleiben sichtbar.
+
+## v8 Admin edit/save fix
+
+The content editor was rebuilt so Hero Slides, Leaks/Videos, Screenshots and News all use the same delegated update handler. UPDATE CONTENT now writes the edited record to D1 immediately, uses the persisted D1 response as the source of truth, and shows a visible publish status. Cache-busting is v8.

@@ -6,6 +6,7 @@
   let tab='dashboard', draft=null;
   let editIds={hero:null, leaks:null, screens:null, news:null};
   let selectedBlipId=null;
+  let activeEntityConfig=null;
 
   const titles={
     dashboard:'Overview', hero:'Hero Slides', leaks:'Leaks / Videos', screens:'Screenshots',
@@ -63,39 +64,42 @@
 
   async function saveDraft(successMessage='Changes saved.'){
     normalizeDraft();
-    let saved=false;
+    const topSave=$('#saveAdmin');
+    const oldTopText=topSave?.textContent;
+    if(topSave){topSave.disabled=true;topSave.textContent='SAVING...';}
 
-    if(window.SIXWORLD.backend){
-      try{
+    try{
+      if(window.SIXWORLD.backend){
         const r=await fetch('/api/admin/content',{
           method:'PUT',
-          headers:{'content-type':'application/json'},
+          credentials:'same-origin',
+          headers:{'content-type':'application/json','cache-control':'no-cache'},
           body:JSON.stringify(draft)
         });
+        const payload=await r.json().catch(()=>null);
         if(!r.ok){
-          const detail=await r.text().catch(()=>r.statusText);
-          window.SIXWORLD.toast(`Save failed (${r.status}). Please log in again if needed.`);
-          console.error('SIXWORLD admin save failed:',r.status,detail);
+          const msg=payload?.error || `HTTP ${r.status}`;
+          console.error('SIXWORLD admin save failed:',r.status,payload);
+          window.SIXWORLD.toast(`Save failed: ${msg}`);
           return false;
         }
-        saved=true;
-      }catch(err){
-        console.error('SIXWORLD admin save error:',err);
-        window.SIXWORLD.toast('Save failed. Network/API unavailable.');
-        return false;
+        // The API returns the persisted D1 document. Use that as source of truth.
+        if(payload?.content){ draft=clone(payload.content); normalizeDraft(); }
+      }else{
+        localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
       }
-    }else{
-      localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
-      saved=true;
-    }
 
-    if(saved){
       window.SIXWORLD.content=clone(draft);
       window.SIXWORLD.renderAll();
       window.SIXWORLD.toast(successMessage);
       return true;
+    }catch(err){
+      console.error('SIXWORLD admin save error:',err);
+      window.SIXWORLD.toast('Save failed. Check the browser console / login session.');
+      return false;
+    }finally{
+      if(topSave){topSave.disabled=false;topSave.textContent=oldTopText||'SAVE CHANGES';}
     }
-    return false;
   }
 
   function stat(n,l){ return `<div class="stat-card"><b>${n}</b><span>${l}</span></div>`; }
@@ -110,34 +114,106 @@
       </div>
     </div>`;
   }
-  function bindDeletes(){
-    $$('[data-delete]','#adminContent').forEach(b=>b.onclick=e=>{
-      e.stopPropagation();
-      const a=b.dataset.array;
-      if(a==='screens') draft.screenshots = draft.screenshots.filter(x=>x.id!==b.dataset.delete);
-      else draft[a] = draft[a].filter(x=>x.id!==b.dataset.delete);
-      if(editIds[a]!=null && String(editIds[a])===String(b.dataset.delete)) editIds[a]=null;
-      renderTab();
-    });
+  function getEntityList(key){
+    if(key==='hero') return draft.hero;
+    if(key==='leaks') return draft.leaks;
+    if(key==='screens') return draft.screenshots;
+    if(key==='news') return draft.news;
+    return null;
   }
+
+  function bindDeletes(){ /* handled by delegated listener */ }
+  function bindSelects(){ /* handled by delegated listener */ }
+
   function startEdit(key,id){
     if(!Object.prototype.hasOwnProperty.call(editIds,key)) return;
     editIds[key]=String(id);
     renderTab();
     setTimeout(()=>document.querySelector('.admin-section.editor-section')?.scrollIntoView({behavior:'smooth',block:'start'}),30);
   }
-  function bindSelects(){ /* Edit clicks are handled by delegated listener below. */ }
 
-  $('#adminContent').addEventListener('click',e=>{
+  async function saveActiveEntity(button){
+    const config=activeEntityConfig;
+    if(!config){ window.SIXWORLD.toast('Editor error: no active content type.'); return; }
+    const {key,fields}=config;
+    const list=getEntityList(key);
+    if(!list){ window.SIXWORLD.toast('Editor error: invalid content list.'); return; }
+
+    const originalText=button?.textContent || 'UPDATE CONTENT';
+    if(button){ button.disabled=true; button.textContent='SAVING...'; }
+    window.SIXWORLD.toast('Publishing changes...');
+
+    try{
+      const values={};
+      for(const f of fields){
+        const field=$(`[data-entity-field="${key}.${f.name}"]`) || $(`#${key}_${f.name}`);
+        values[f.name]=field ? field.value : '';
+      }
+
+      const activeEditId=editIds[key];
+      let message='Content added & published.';
+      if(activeEditId!=null){
+        const index=list.findIndex(x=>String(x.id)===String(activeEditId));
+        if(index<0){
+          window.SIXWORLD.toast('Update failed: content item not found.');
+          return;
+        }
+        Object.assign(list[index],values);
+        message='Content updated & published.';
+      }else{
+        list.unshift({id:uid(key.slice(0,1)),...values});
+      }
+
+      const ok=await saveDraft(message);
+      if(!ok) return;
+
+      editIds[key]=null;
+      activeEntityConfig=null;
+      renderTab();
+    }catch(err){
+      console.error('SIXWORLD entity update error:',err);
+      window.SIXWORLD.toast('Update failed due to a JavaScript error.');
+    }finally{
+      if(button && document.contains(button)){ button.disabled=false; button.textContent=originalText; }
+    }
+  }
+
+  $('#adminContent').addEventListener('click',async e=>{
+    const saveBtn=e.target.closest('[data-action="save-entity"]');
+    if(saveBtn){
+      e.preventDefault(); e.stopPropagation();
+      await saveActiveEntity(saveBtn);
+      return;
+    }
+    const newBtn=e.target.closest('[data-action="new-entity"]');
+    if(newBtn){
+      e.preventDefault(); e.stopPropagation();
+      const key=newBtn.dataset.entityKey;
+      if(key && Object.prototype.hasOwnProperty.call(editIds,key)) editIds[key]=null;
+      renderTab();
+      return;
+    }
+    const deleteBtn=e.target.closest('[data-delete]');
+    if(deleteBtn){
+      e.preventDefault(); e.stopPropagation();
+      const key=deleteBtn.dataset.array;
+      const list=getEntityList(key);
+      if(list){
+        const index=list.findIndex(x=>String(x.id)===String(deleteBtn.dataset.delete));
+        if(index>=0) list.splice(index,1);
+        if(editIds[key]!=null && String(editIds[key])===String(deleteBtn.dataset.delete)) editIds[key]=null;
+        renderTab();
+      }
+      return;
+    }
     const editBtn=e.target.closest('[data-edit-btn]');
     if(editBtn){
-      e.preventDefault();
-      e.stopPropagation();
-      startEdit(editBtn.dataset.array, editBtn.dataset.editBtn);
+      e.preventDefault(); e.stopPropagation();
+      startEdit(editBtn.dataset.array,editBtn.dataset.editBtn);
       return;
     }
     const row=e.target.closest('.admin-row[data-edit]');
-    if(row && !e.target.closest('[data-delete]')){
+    if(row){
       e.preventDefault();
       startEdit(row.dataset.array,row.dataset.edit);
     }
@@ -167,59 +243,34 @@
   }
 
   function entityEditor(config){
-    const {key,title,list,fields,imgKey,subtitle} = config;
-    const editId = editIds[key];
-    const current = list.find(x=>String(x.id)===String(editId)) || {};
-    const formHtml = fields.map(f=>{
-      if(f.type==='textarea') return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><textarea id="${key}_${f.name}">${window.SIXWORLD.escapeHtml(current[f.name]||f.default||'')}</textarea></div>`;
-      if(f.type==='select') return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><select id="${key}_${f.name}">${f.options.map(opt=>`<option value="${opt}" ${String(current[f.name]||f.default||'')===String(opt)?'selected':''}>${opt}</option>`).join('')}</select></div>`;
-      return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><input id="${key}_${f.name}" ${f.type?`type="${f.type}"`:''} value="${window.SIXWORLD.escapeHtml(current[f.name]||f.default||'')}"></div>`;
+    const {key,title,fields,imgKey,subtitle}=config;
+    const list=getEntityList(key) || [];
+    const editId=editIds[key];
+    const current=list.find(x=>String(x.id)===String(editId)) || {};
+    activeEntityConfig={...config,list:null};
+
+    const formHtml=fields.map(f=>{
+      const val=current[f.name] ?? f.default ?? '';
+      const common=`id="${key}_${f.name}" data-entity-field="${key}.${f.name}"`;
+      if(f.type==='textarea') return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><textarea ${common}>${window.SIXWORLD.escapeHtml(val)}</textarea></div>`;
+      if(f.type==='select') return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><select ${common}>${f.options.map(opt=>`<option value="${window.SIXWORLD.escapeHtml(opt)}" ${String(val)===String(opt)?'selected':''}>${window.SIXWORLD.escapeHtml(opt)}</option>`).join('')}</select></div>`;
+      return `<div class="admin-field ${f.full?'full':''}"><label>${f.label}</label><input ${common} ${f.type?`type="${f.type}"`:''} value="${window.SIXWORLD.escapeHtml(val)}"></div>`;
     }).join('');
-    $('#adminContent').innerHTML = `
-      <section class="admin-section"><div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Klicke auf einen Eintrag oder auf <b>EDIT</b>, um vorhandene Inhalte zu bearbeiten.</p></div></div><div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div></section>
-      <section class="admin-section editor-section"><h3>${editId?'Edit Selected':'Create New'}</h3>${editId?'<div class="editing-badge">EDIT MODE · vorhandener Inhalt</div>':''}<div class="admin-form">${formHtml}</div><div class="inline-actions"><button class="solid-btn" id="saveEntity">${editId?'UPDATE CONTENT':'ADD NEW'}</button><button class="ghost-btn" id="newEntity">CLEAR / NEW</button></div></section>`;
-    bindDeletes();
-    bindSelects();
-    $('#newEntity').onclick=()=>{ editIds[key]=null; renderTab(); };
-    $('#saveEntity').onclick=async e=>{
-      e.preventDefault();
-      const button=e.currentTarget;
-      const originalText=button.textContent;
-      button.disabled=true;
-      button.textContent='SAVING...';
 
-      const values={};
-      fields.forEach(f=>{
-        const field=$(`#${key}_${f.name}`);
-        values[f.name]=field ? field.value : '';
-      });
-
-      const activeEditId=editIds[key];
-      let message='Content added & published.';
-
-      if(activeEditId){
-        const index=list.findIndex(x=>String(x.id)===String(activeEditId));
-        if(index<0){
-          button.disabled=false;
-          button.textContent=originalText;
-          window.SIXWORLD.toast('Update failed: content item not found.');
-          return;
-        }
-        list[index] = {...list[index], ...values};
-        message='Content updated & published.';
-      }else{
-        list.unshift({id:uid(key.slice(0,1)), ...values});
-      }
-
-      const ok=await saveDraft(message);
-      button.disabled=false;
-      button.textContent=originalText;
-
-      if(ok){
-        editIds[key]=null;
-        renderTab();
-      }
-    };
+    $('#adminContent').innerHTML=`
+      <section class="admin-section">
+        <div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Klicke auf einen Eintrag oder auf <b>EDIT</b>, um vorhandene Inhalte zu bearbeiten.</p></div></div>
+        <div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div>
+      </section>
+      <section class="admin-section editor-section">
+        <h3>${editId!=null?'Edit Selected':'Create New'}</h3>
+        ${editId!=null?'<div class="editing-badge">EDIT MODE · vorhandener Inhalt</div>':''}
+        <div class="admin-form">${formHtml}</div>
+        <div class="inline-actions">
+          <button type="button" class="solid-btn" id="saveEntity" data-action="save-entity" data-entity-key="${key}">${editId!=null?'UPDATE CONTENT':'ADD NEW'}</button>
+          <button type="button" class="ghost-btn" id="newEntity" data-action="new-entity" data-entity-key="${key}">CLEAR / NEW</button>
+        </div>
+      </section>`;
   }
 
   function renderHero(){

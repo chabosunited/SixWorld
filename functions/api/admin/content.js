@@ -9,7 +9,7 @@ export async function onRequestGet({request,env}){
   try{
     const row = await env.DB.prepare('SELECT json, updated_at FROM site_content WHERE id=1').first();
     if(!row?.json) return json({error:'not found'},404);
-    return new Response(row.json,{headers:{'content-type':'application/json;charset=utf-8','cache-control':'no-store','x-updated-at':row.updated_at||''}});
+    return json({ok:true,content:JSON.parse(row.json),updated_at:row.updated_at||null});
   }catch(e){
     return json({error:'database read failed'},500);
   }
@@ -21,8 +21,14 @@ export async function onRequestPut({request,env}){
   if(!body || !Array.isArray(body.hero) || !Array.isArray(body.leaks) || !Array.isArray(body.screenshots) || !Array.isArray(body.news) || !body.map) {
     return json({error:'invalid content'},400);
   }
-  const text = JSON.stringify(body);
-  await env.DB.prepare(`INSERT INTO site_content(id,json,updated_at) VALUES(1,?,CURRENT_TIMESTAMP)
-    ON CONFLICT(id) DO UPDATE SET json=excluded.json, updated_at=CURRENT_TIMESTAMP`).bind(text).run();
-  return json({ok:true});
+  try{
+    const text = JSON.stringify(body);
+    await env.DB.prepare(`INSERT INTO site_content(id,json,updated_at) VALUES(1,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET json=excluded.json, updated_at=CURRENT_TIMESTAMP`).bind(text).run();
+    const row=await env.DB.prepare('SELECT json, updated_at FROM site_content WHERE id=1').first();
+    return json({ok:true,content:row?.json?JSON.parse(row.json):body,updated_at:row?.updated_at||null});
+  }catch(e){
+    console.error('SIXWORLD D1 save failed',e);
+    return json({error:'database write failed'},500);
+  }
 }
