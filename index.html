@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body>
   <div class="noise"></div>
@@ -179,8 +179,8 @@
 
   <footer><span data-i18n="footer.project">© 2026 SIXWORLD — FAN PROJECT</span><span class="site-counter" id="siteCounter">VISITORS: <b id="visitorCount">—</b> (<b id="hitCount">—</b> HITS)</span><span data-i18n="footer.disclaimer">NOT AFFILIATED WITH ROCKSTAR GAMES OR TAKE-TWO INTERACTIVE.</span></footer>
 
-  <div class="modal" id="videoModal" aria-hidden="true"><div class="modal-card video-card"><button class="modal-close" data-close="videoModal">×</button><div id="videoFrameWrap"></div><div class="modal-caption"><span id="videoModalDate"></span><h2 id="videoModalTitle"></h2></div></div></div>
-  <div class="modal" id="lightbox" aria-hidden="true"><div class="modal-card lightbox-card"><button class="modal-close" data-close="lightbox">×</button><img id="lightboxImage" alt="Screenshot"><div class="modal-caption"><span id="lightboxSource"></span><h2 id="lightboxTitle"></h2></div></div></div>
+  <div class="modal" id="videoModal" aria-hidden="true"><div class="modal-card video-card community-media-modal"><button class="modal-close" data-close="videoModal">×</button><div id="videoFrameWrap"></div><div class="modal-caption"><div class="media-modal-meta"><span id="videoModalDate"></span><span class="modal-view-count" id="videoModalViews">— views</span></div><h2 id="videoModalTitle"></h2></div><div class="community-thread" id="videoComments"></div></div></div>
+  <div class="modal" id="lightbox" aria-hidden="true"><div class="modal-card lightbox-card community-media-modal"><button class="modal-close" data-close="lightbox">×</button><img id="lightboxImage" alt="Screenshot"><div class="modal-caption"><div class="media-modal-meta"><span id="lightboxSource"></span><span class="modal-view-count" id="lightboxViews">— views</span></div><h2 id="lightboxTitle"></h2></div><div class="community-thread" id="screenshotComments"></div></div></div>
   <div class="modal" id="loginModal" aria-hidden="true"><div class="modal-card login-card"><button class="modal-close" data-close="loginModal">×</button><div class="admin-mark">VI</div><span class="kicker" data-i18n="login.restricted">RESTRICTED</span><h2>SIXWORLD CONTROL</h2><p data-i18n="login.authorized">Authorized access only.</p><form id="loginForm"><input id="adminUser" autocomplete="username" placeholder="Username" value="admin"><input id="adminPass" autocomplete="current-password" type="password" placeholder="Password"><button class="solid-btn" type="submit" data-i18n="login.access">ACCESS PANEL</button></form><small id="loginHint" data-i18n="login.hint">Secure backend login when deployed. Local preview uses demo credentials.</small></div></div>
 
   <div class="admin-overlay" id="adminOverlay" aria-hidden="true">
@@ -192,6 +192,7 @@
         <button data-admin-tab="leaks">Leaks / Videos</button>
         <button data-admin-tab="screens">Screenshots</button>
         <button data-admin-tab="news">News</button>
+        <button data-admin-tab="comments">Comments</button>
         <button data-admin-tab="map">Interactive Map</button>
         <button data-admin-tab="settings">Settings</button>
         <button data-admin-tab="access">Access</button>
@@ -209,7 +210,7 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="js/app.js?v=18" defer></script>
-  <script src="js/admin.js?v=18" defer></script>
+  <script src="js/app.js?v=19" defer></script>
+  <script src="js/admin.js?v=19" defer></script>
 </body>
 </html>

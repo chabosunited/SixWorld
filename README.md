@@ -139,3 +139,23 @@ Deleting an imported community marker adds it to an exclusion list so it does no
 - Main cards use a stronger silver/metallic border treatment.
 - Public interface text is English by default.
 - Header language selector switches between English and German without an external translation API. Static interface text is translated locally for speed and reliability; external feed/post titles remain in their source language.
+
+## v19 — Guest Comments, Replies & Video Views
+
+- Video cards now show view counts.
+- For Streamable links, SIXWORLD attempts to read the public Streamable view count. If that is unavailable, the SIXWORLD D1 counter is used as a fallback.
+- Opening videos/screenshots also increments SIXWORLD's own media counter.
+- Videos and screenshots now have guest comment threads.
+- Visitors only choose a nickname; no registration, email or password is required.
+- The nickname is stored locally in the browser (`localStorage`). Clearing browser/site data removes it, and the visitor may choose the same nickname again later.
+- Replies to other comments are supported.
+- Reserved identity-like nicknames such as Admin, Administrator, SixWorld, Moderator, Staff, Support and similar variants are blocked server-side and client-side.
+- Admin Panel → Comments lets administrators review and delete comments. Deleting a parent comment also removes its replies.
+- Public commenting is rate-limited server-side to reduce simple spam.
+
+### D1
+The required tables are created automatically by the Cloudflare Functions on first use. `migration_v19.sql` is also included if you prefer to create them manually:
+
+```bash
+npx wrangler d1 execute sixworld-db --remote --file=migration_v19.sql
+```

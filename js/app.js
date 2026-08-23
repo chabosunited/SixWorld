@@ -3,7 +3,7 @@
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const escapeHtml = (v='') => String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const FALLBACK_KEY = 'sixworld_content_v3';
-  const app = window.SIXWORLD = { content:null, backend:false, escapeHtml, FALLBACK_KEY, toast:null, liveFeedItems:[] };
+  const app = window.SIXWORLD = { content:null, backend:false, escapeHtml, FALLBACK_KEY, toast:null, liveFeedItems:[], viewCache:new Map(), community:{active:null,items:[],replyTo:null} };
 
   async function loadContent(){
     try{
@@ -136,7 +136,8 @@
       'map.region':'REGION','map.districtFact':'DISTRICT','map.poi':'POINTS OF INTEREST','map.discovered':'DISCOVERED','map.recent':'RECENTLY DISCOVERED','map.viewAll':'VIEW ALL →',
       'footer.project':'© 2026 SIXWORLD — FAN PROJECT','footer.disclaimer':'NOT AFFILIATED WITH ROCKSTAR GAMES OR TAKE-TWO INTERACTIVE.',
       'login.restricted':'RESTRICTED','login.authorized':'Authorized access only.','login.access':'ACCESS PANEL','login.hint':'Secure backend login when deployed. Local preview uses demo credentials.',
-      'search.placeholder':'Search...','menu.open':'Open menu','menu.close':'Close menu','profile.notice':'Community profiles can be connected as a later module.'
+      'search.placeholder':'Search...','menu.open':'Open menu','menu.close':'Close menu','profile.notice':'Community profiles can be connected as a later module.',
+      'community.views':'views','community.comments':'COMMENTS','community.guestTitle':'Join as a guest','community.guestHelp':'Choose a nickname to comment. No account or password is required.','community.nickname':'Nickname','community.useNickname':'USE NICKNAME','community.commentingAs':'Commenting as','community.change':'CHANGE','community.placeholder':'Write a comment...','community.replyPlaceholder':'Write a reply...','community.post':'POST COMMENT','community.reply':'REPLY','community.cancel':'CANCEL','community.noComments':'No comments yet. Be the first to comment.','community.loading':'Loading comments...','community.reserved':'This nickname is reserved.','community.nickLength':'Nickname must be 2–24 characters.','community.postFailed':'Comment could not be posted.'
     },
     de:{
       'nav.home':'START','nav.leaks':'LEAKS','nav.screenshots':'SCREENSHOTS','nav.news':'NEWS','nav.map':'KARTE',
@@ -149,7 +150,8 @@
       'map.region':'REGION','map.districtFact':'BEZIRK','map.poi':'SEHENSWÜRDIGKEITEN','map.discovered':'ENTDECKT','map.recent':'KÜRZLICH ENTDECKT','map.viewAll':'ALLE ANZEIGEN →',
       'footer.project':'© 2026 SIXWORLD — FANPROJEKT','footer.disclaimer':'NICHT MIT ROCKSTAR GAMES ODER TAKE-TWO INTERACTIVE VERBUNDEN.',
       'login.restricted':'GESCHÜTZT','login.authorized':'Nur für autorisierte Zugriffe.','login.access':'ADMIN PANEL ÖFFNEN','login.hint':'Sicherer Backend-Login nach dem Deployment. Die lokale Vorschau verwendet Demo-Zugangsdaten.',
-      'search.placeholder':'Suchen...','menu.open':'Menü öffnen','menu.close':'Menü schließen','profile.notice':'Community-Profile können später als eigenes Modul ergänzt werden.'
+      'search.placeholder':'Suchen...','menu.open':'Menü öffnen','menu.close':'Menü schließen','profile.notice':'Community-Profile können später als eigenes Modul ergänzt werden.',
+      'community.views':'Aufrufe','community.comments':'KOMMENTARE','community.guestTitle':'Als Gast teilnehmen','community.guestHelp':'Wähle einen Nicknamen zum Kommentieren. Kein Account und kein Passwort erforderlich.','community.nickname':'Nickname','community.useNickname':'NICKNAME VERWENDEN','community.commentingAs':'Kommentieren als','community.change':'ÄNDERN','community.placeholder':'Kommentar schreiben...','community.replyPlaceholder':'Antwort schreiben...','community.post':'KOMMENTIEREN','community.reply':'ANTWORTEN','community.cancel':'ABBRECHEN','community.noComments':'Noch keine Kommentare. Sei der Erste.','community.loading':'Kommentare werden geladen...','community.reserved':'Dieser Nickname ist reserviert.','community.nickLength':'Der Nickname muss 2–24 Zeichen lang sein.','community.postFailed':'Kommentar konnte nicht veröffentlicht werden.'
     }
   };
   app.language=localStorage.getItem('sixworld_language')||'en';
@@ -175,7 +177,144 @@
     if(code)code.textContent=app.language==='de'?'DE':'EN';
     $('#languageMenu')?.classList.remove('open');
     $('#languageButton')?.setAttribute('aria-expanded','false');
-    if(rerender && app.content){ renderHome();renderMap();setHero(app.heroIndex||0,false,true); }
+    if(rerender && app.content){
+      renderHome();renderMap();setHero(app.heroIndex||0,false,true);setTimeout(()=>hydrateVideoViewCounts(document),20);
+      if(app.community.active){const thread=$('#'+app.community.active.threadId);if(thread)paintCommunityThread(thread);}
+      const active=app.community.active;
+      if(active?.type==='video'&&$('#videoModalViews'))fetchMediaViews('video',active.item).then(v=>$('#videoModalViews').textContent=formatViews(v.views));
+      if(active?.type==='screenshot'&&$('#lightboxViews'))fetchMediaViews('screenshot',active.item).then(v=>$('#lightboxViews').textContent=formatViews(v.views));
+    }
+  }
+
+  const GUEST_NICK_KEY='sixworld_guest_nickname';
+  function nickKey(value=''){
+    return String(value).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e').replace(/4/g,'a').replace(/5/g,'s').replace(/7/g,'t')
+      .replace(/[^a-z0-9]/g,'');
+  }
+  function reservedGuestNick(value=''){
+    const n=nickKey(value);
+    return !n || n.includes('admin') || n.includes('administrator') || n.startsWith('sixworld') || n.includes('rockstargames') ||
+      new Set(['mod','moderator','staff','support','official','owner','root','webmaster','system']).has(n);
+  }
+  function getGuestNick(){ return (localStorage.getItem(GUEST_NICK_KEY)||'').trim(); }
+  function setGuestNick(value){
+    const nick=String(value||'').trim().replace(/\s+/g,' ').slice(0,24);
+    if(nick.length<2){toast(t('community.nickLength'));return false;}
+    if(reservedGuestNick(nick)){toast(t('community.reserved'));return false;}
+    localStorage.setItem(GUEST_NICK_KEY,nick);return true;
+  }
+  function formatCount(value){return Number(value||0).toLocaleString(app.language==='de'?'de-DE':'en-US');}
+  function formatViews(value){return `${formatCount(value)} ${t('community.views')}`;}
+  function mediaViewKey(type,id){return `${type}:${id}`;}
+  async function fetchMediaViews(type,item,{force=false}={}){
+    const key=mediaViewKey(type,item?.id||'');
+    const cached=app.viewCache.get(key);
+    if(!force && cached && Date.now()-cached.time<60000) return cached;
+    try{
+      const url=new URL('/api/media/views',location.origin);
+      url.searchParams.set('type',type);url.searchParams.set('id',item.id);
+      if(type==='video'&&item.video)url.searchParams.set('url',item.video);
+      const r=await fetch(url,{cache:'no-store'});const d=await r.json();
+      const out={views:Number(d.views||0),source:d.source||'sixworld',time:Date.now()};app.viewCache.set(key,out);return out;
+    }catch(e){return {views:0,source:'sixworld',time:Date.now()};}
+  }
+  async function registerMediaView(type,item){
+    if(!item?.id)return;
+    try{
+      await fetch('/api/media/views',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mediaType:type,contentId:item.id})});
+      app.viewCache.delete(mediaViewKey(type,item.id));
+    }catch(e){}
+  }
+  async function hydrateVideoViewCounts(scope=document){
+    const elements=$$('[data-video-view-id]',scope);
+    const unique=new Map();
+    elements.forEach(el=>{const id=el.dataset.videoViewId;const item=(app.content.leaks||[]).find(x=>String(x.id)===String(id));if(item)unique.set(String(id),item);});
+    await Promise.all([...unique.values()].map(async item=>{
+      const data=await fetchMediaViews('video',item);
+      $$(`[data-video-view-id="${CSS.escape(String(item.id))}"]`,scope).forEach(el=>el.textContent=formatViews(data.views));
+    }));
+  }
+  function communityDate(value){
+    const d=new Date(String(value||'').replace(' ','T')+'Z');
+    if(Number.isNaN(d.getTime()))return value||'';
+    return new Intl.DateTimeFormat(app.language==='de'?'de-DE':'en-US',{dateStyle:'medium',timeStyle:'short'}).format(d);
+  }
+  function commentTree(items){
+    const map=new Map(items.map(x=>[Number(x.id),{...x,children:[]}])) , roots=[];
+    for(const c of map.values()){
+      const p=c.parent_id==null?null:map.get(Number(c.parent_id));
+      if(p)p.children.push(c);else roots.push(c);
+    }
+    return roots;
+  }
+  function commentNodeHtml(c,depth=0){
+    const replyOpen=Number(app.community.replyTo)===Number(c.id);
+    return `<article class="guest-comment" data-comment-id="${c.id}" style="--comment-depth:${Math.min(depth,4)}">
+      <div class="guest-comment-avatar">${escapeHtml((c.nickname||'?').slice(0,1).toUpperCase())}</div>
+      <div class="guest-comment-main">
+        <div class="guest-comment-head"><b>${escapeHtml(c.nickname)}</b><time>${escapeHtml(communityDate(c.created_at))}</time></div>
+        <p>${escapeHtml(c.body).replace(/\n/g,'<br>')}</p>
+        <button class="guest-reply-btn" type="button" data-reply-id="${c.id}" data-reply-name="${escapeHtml(c.nickname)}">↳ ${escapeHtml(t('community.reply'))}</button>
+        ${replyOpen?commentComposerHtml(c.id,c.nickname,true):''}
+        ${c.children?.length?`<div class="comment-children">${c.children.map(x=>commentNodeHtml(x,depth+1)).join('')}</div>`:''}
+      </div>
+    </article>`;
+  }
+  function guestIdentityHtml(){
+    const nick=getGuestNick();
+    if(nick)return `<div class="guest-identity active"><span>${escapeHtml(t('community.commentingAs'))} <b>${escapeHtml(nick)}</b></span><button type="button" data-change-nick>${escapeHtml(t('community.change'))}</button></div>`;
+    return `<div class="guest-identity-picker"><div><b>${escapeHtml(t('community.guestTitle'))}</b><small>${escapeHtml(t('community.guestHelp'))}</small></div><div class="guest-nick-row"><input maxlength="24" data-guest-nick placeholder="${escapeHtml(t('community.nickname'))}"><button type="button" data-save-nick>${escapeHtml(t('community.useNickname'))}</button></div></div>`;
+  }
+  function commentComposerHtml(parentId=null,parentName='',reply=false){
+    const nick=getGuestNick();if(!nick)return '';
+    return `<form class="guest-comment-form ${reply?'reply-form':''}" data-parent-id="${parentId??''}">
+      ${reply?`<div class="replying-to">↳ ${escapeHtml(t('community.reply'))} @${escapeHtml(parentName)} <button type="button" data-cancel-reply>×</button></div>`:''}
+      <textarea maxlength="1200" required placeholder="${escapeHtml(reply?t('community.replyPlaceholder'):t('community.placeholder'))}"></textarea>
+      <button class="solid-btn compact" type="submit">${escapeHtml(reply?t('community.reply'):t('community.post'))}</button>
+    </form>`;
+  }
+  function paintCommunityThread(thread){
+    if(!thread||!app.community.active)return;
+    const roots=commentTree(app.community.items||[]);
+    thread.innerHTML=`<div class="community-thread-head"><h3>${escapeHtml(t('community.comments'))}</h3><span>${formatCount(app.community.items?.length||0)}</span></div>
+      ${guestIdentityHtml()}
+      ${commentComposerHtml()}
+      <div class="guest-comments-list">${roots.length?roots.map(x=>commentNodeHtml(x)).join(''):`<div class="no-comments">${escapeHtml(t('community.noComments'))}</div>`}</div>`;
+    bindCommunityThread(thread);
+  }
+  async function loadComments(type,item,threadId){
+    const thread=$('#'+threadId);if(!thread)return;
+    app.community.active={type,item,threadId};app.community.items=[];app.community.replyTo=null;
+    thread.innerHTML=`<div class="comments-loading">${escapeHtml(t('community.loading'))}</div>`;
+    try{
+      const r=await fetch(`/api/community/comments?type=${encodeURIComponent(type)}&id=${encodeURIComponent(item.id)}`,{cache:'no-store'});
+      const d=await r.json();app.community.items=Array.isArray(d.items)?d.items:[];
+    }catch(e){app.community.items=[];}
+    if(app.community.active?.threadId===threadId)paintCommunityThread(thread);
+  }
+  function bindCommunityThread(thread){
+    thread.onclick=async e=>{
+      const save=e.target.closest('[data-save-nick]');
+      if(save){const input=thread.querySelector('[data-guest-nick]');if(setGuestNick(input?.value||''))paintCommunityThread(thread);return;}
+      if(e.target.closest('[data-change-nick]')){localStorage.removeItem(GUEST_NICK_KEY);app.community.replyTo=null;paintCommunityThread(thread);return;}
+      const reply=e.target.closest('[data-reply-id]');
+      if(reply){if(!getGuestNick()){toast(t('community.guestHelp'));return;}app.community.replyTo=Number(reply.dataset.replyId);paintCommunityThread(thread);setTimeout(()=>thread.querySelector('.reply-form textarea')?.focus(),30);return;}
+      if(e.target.closest('[data-cancel-reply]')){app.community.replyTo=null;paintCommunityThread(thread);return;}
+    };
+    thread.onsubmit=async e=>{
+      const form=e.target.closest('.guest-comment-form');if(!form)return;e.preventDefault();
+      const active=app.community.active,nick=getGuestNick(),textarea=form.querySelector('textarea');const body=textarea?.value.trim()||'';
+      if(!active||!nick||!body)return;
+      const button=form.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent='...';}
+      try{
+        const r=await fetch('/api/community/comments',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mediaType:active.type,contentId:active.item.id,parentId:form.dataset.parentId?Number(form.dataset.parentId):null,nickname:nick,body})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok){toast(d.error||t('community.postFailed'));return;}
+        app.community.replyTo=null;await loadComments(active.type,active.item,active.threadId);
+      }catch(err){toast(t('community.postFailed'));}
+      finally{if(button){button.disabled=false;}}
+    };
   }
 
   const iconSvg = {
@@ -305,7 +444,7 @@
     $('#homeLeaks').innerHTML = homePanelHeader('leaks','home.leaks','#leaks') + leaks.map(l=>`
       <div class="leak-mini" data-video-id="${escapeHtml(l.id)}">
         <div class="thumb"><img src="${escapeHtml(l.thumb)}" alt=""><i class="play"></i><span class="duration">${escapeHtml(l.duration||'')}</span></div>
-        <div class="mini-copy"><b>${escapeHtml(l.title)}</b><small>${escapeHtml(l.date)}</small></div>
+        <div class="mini-copy"><b>${escapeHtml(l.title)}</b><div class="mini-meta"><small>${escapeHtml(l.date)}</small><small class="video-view-count" data-video-view-id="${escapeHtml(l.id)}">— ${escapeHtml(t('community.views'))}</small></div></div>
       </div>`).join('');
 
     const shots=(app.content.screenshots||[]).slice(0,6);
@@ -339,7 +478,7 @@
     $('#leaksGrid').innerHTML = arr.map(l=>`
       <article class="media-card" data-video-id="${escapeHtml(l.id)}">
         <div class="cover"><img src="${escapeHtml(l.thumb)}" alt="${escapeHtml(l.title)}"><i class="play"></i><span class="duration">${escapeHtml(l.duration||'')}</span></div>
-        <div class="body"><h3>${escapeHtml(l.title)}</h3><div class="meta"><span>${escapeHtml(l.date)}</span><span>${escapeHtml(l.source||'')}</span></div></div>
+        <div class="body"><h3>${escapeHtml(l.title)}</h3><div class="meta"><span>${escapeHtml(l.date)}</span><span>${escapeHtml(l.source||'')}</span><span class="video-view-count" data-video-view-id="${escapeHtml(l.id)}">— ${escapeHtml(t('community.views'))}</span></div></div>
       </article>`).join('');
   }
 
@@ -491,6 +630,7 @@
     renderNews();
     renderMap();
     applyLanguage(app.language,false);
+    setTimeout(()=>hydrateVideoViewCounts(document),25);
   }
 
   function openModal(id){ const m=$('#'+id); m.classList.add('open'); m.setAttribute('aria-hidden','false'); }
@@ -512,20 +652,31 @@
     if(/youtu\.be\//.test(url)){ return `https://www.youtube.com/embed/${url.split('/').pop().split('?')[0]}`; }
     return url;
   }
-  function showVideo(item){
+  async function showVideo(item){
     const u=normalizeVideo(item.video||'');
     $('#videoFrameWrap').innerHTML = /\.(mp4|webm)(\?|$)/i.test(u)
       ? `<video controls autoplay src="${escapeHtml(u)}"></video>`
       : `<iframe src="${escapeHtml(u)}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
     $('#videoModalTitle').textContent=item.title||'';
     $('#videoModalDate').textContent=item.date||'';
+    $('#videoModalViews').textContent=`— ${t('community.views')}`;
     openModal('videoModal');
+    await registerMediaView('video',item);
+    loadComments('video',item,'videoComments');
+    const view=await fetchMediaViews('video',item,{force:true});
+    if($('#videoModalViews'))$('#videoModalViews').textContent=formatViews(view.views);
+    hydrateVideoViewCounts();
   }
-  function showShot(item){
+  async function showShot(item){
     $('#lightboxImage').src=item.image;
     $('#lightboxTitle').textContent=item.title||'';
     $('#lightboxSource').textContent=item.source||'';
+    $('#lightboxViews').textContent=`— ${t('community.views')}`;
     openModal('lightbox');
+    await registerMediaView('screenshot',item);
+    loadComments('screenshot',item,'screenshotComments');
+    const view=await fetchMediaViews('screenshot',item,{force:true});
+    if($('#lightboxViews'))$('#lightboxViews').textContent=formatViews(view.views);
   }
 
   function setMobileMenu(open){
@@ -573,6 +724,7 @@
     $$('.nav a').forEach(a=>a.classList.toggle('active', a.dataset.route===page));
     setMobileMenu(false);
     window.scrollTo({top:0,behavior:'instant'});
+    if(page==='home'||page==='leaks') setTimeout(()=>hydrateVideoViewCounts(document),20);
   }
   addEventListener('hashchange', route);
 

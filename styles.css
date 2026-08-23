@@ -1184,3 +1184,68 @@ body{
   .language-current{width:38px;min-width:38px;height:38px}
   .language-current #languageFlag{font-size:17px}
 }
+
+/* ===== SIXWORLD v19 Guest comments + media view counters ===== */
+.video-view-count,.modal-view-count{color:var(--sub-pink)!important;font-weight:700}
+.mini-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:5px}
+.mini-meta small{margin:0!important}
+.community-media-modal{max-height:min(92vh,980px);overflow-y:auto;scrollbar-gutter:stable}
+.community-media-modal::-webkit-scrollbar{width:9px}
+.community-media-modal::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:999px}
+.media-modal-meta{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.community-thread{padding:0 24px 26px;border-top:1px solid rgba(225,231,241,.15);background:linear-gradient(180deg,rgba(7,15,28,.96),rgba(5,12,23,.98))}
+.community-thread-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 14px}
+.community-thread-head h3{margin:0;font:900 24px/1 var(--font-display);letter-spacing:.04em}
+.community-thread-head span{min-width:30px;height:30px;border-radius:999px;display:grid;place-items:center;padding:0 9px;background:rgba(255,79,163,.12);border:1px solid rgba(255,79,163,.25);color:var(--pink);font:800 12px/1 var(--font-display)}
+.comments-loading,.no-comments{padding:22px 0;color:#8f9db0;text-align:center}
+.guest-identity-picker,.guest-identity.active{border:1px solid rgba(226,232,241,.16);border-radius:14px;background:rgba(255,255,255,.025);padding:14px;margin-bottom:14px}
+.guest-identity-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}
+.guest-identity-picker b{display:block;margin-bottom:5px;color:#f1f5fb}
+.guest-identity-picker small{display:block;color:#8fa0b5;line-height:1.5}
+.guest-nick-row{display:flex;gap:8px;align-items:center}
+.guest-nick-row input{width:190px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035);color:#fff;padding:0 12px;outline:none}
+.guest-nick-row input:focus{border-color:rgba(255,79,163,.55);box-shadow:0 0 0 3px rgba(255,79,163,.08)}
+.guest-nick-row button,.guest-identity.active button{height:42px;border-radius:10px;border:1px solid rgba(255,79,163,.3);background:rgba(255,79,163,.1);color:#ffd6e9;padding:0 14px;cursor:pointer;font:800 12px/1 var(--font-display)}
+.guest-identity.active{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#aab5c5}
+.guest-identity.active b{color:#fff}
+.guest-comment-form{display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px;margin:0 0 18px}
+.guest-comment-form textarea{min-height:82px;resize:vertical;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.028);color:#fff;padding:12px 14px;outline:none;line-height:1.5}
+.guest-comment-form textarea:focus{border-color:rgba(66,230,238,.35);box-shadow:0 0 0 3px rgba(66,230,238,.06)}
+.guest-comment-form.reply-form{grid-template-columns:1fr auto;margin:12px 0 4px;padding:12px;border-radius:12px;background:rgba(255,79,163,.035);border:1px solid rgba(255,79,163,.12)}
+.replying-to{grid-column:1/-1;color:var(--sub-pink);font-size:12px;display:flex;align-items:center;justify-content:space-between}
+.replying-to button{border:0;background:none;color:#fff;cursor:pointer;font-size:18px}
+.guest-comments-list{display:grid;gap:4px}
+.guest-comment{display:grid;grid-template-columns:38px minmax(0,1fr);gap:11px;padding:14px 0;border-top:1px solid rgba(226,232,241,.09)}
+.comment-children{margin-top:10px;padding-left:18px;border-left:1px solid rgba(255,79,163,.18)}
+.comment-children .guest-comment{padding-top:12px}
+.guest-comment-avatar{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(180deg,rgba(255,79,163,.95),rgba(166,75,190,.95));border:1px solid rgba(255,255,255,.22);font:900 14px/1 var(--font-display);box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.guest-comment-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 7px}
+.guest-comment-head b{font-size:14px;color:#fff}
+.guest-comment-head time{font-size:11px;color:#8b98aa}
+.guest-comment-main>p{margin:0;color:#d5dbe5;font-size:14px;line-height:1.58;overflow-wrap:anywhere}
+.guest-reply-btn{margin-top:8px;padding:0;border:0;background:none;color:var(--sub-pink);cursor:pointer;font:800 11px/1 var(--font-display);letter-spacing:.04em}
+
+/* Admin comment moderation */
+.comment-admin-filters{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.admin-comments-list{display:grid;gap:10px}
+.admin-comment-row{padding:15px 16px;border-radius:14px;border:1px solid rgba(226,232,241,.13);background:rgba(255,255,255,.025)}
+.admin-comment-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-comment-top>div{display:flex;align-items:center;gap:10px;min-width:0}
+.admin-comment-top b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comment-type-badge{padding:6px 8px;border-radius:7px;border:1px solid rgba(255,79,163,.22);background:rgba(255,79,163,.08);color:#ffc1df;font:800 10px/1 var(--font-display);letter-spacing:.05em}
+.comment-type-badge.screenshot{border-color:rgba(66,230,238,.2);background:rgba(66,230,238,.07);color:#baf9ff}
+.admin-delete-comment{height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,79,163,.27);background:rgba(255,79,163,.09);color:#ffd2e6;cursor:pointer;font:800 11px/1 var(--font-display)}
+.admin-comment-meta{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 8px;color:#8e9aae;font-size:11px}
+.admin-comment-meta b{color:var(--sub-pink)}
+.admin-comment-row p{margin:0;color:#d8dee7;line-height:1.55;overflow-wrap:anywhere}
+.no-admin-comments{padding:28px;text-align:center;color:#8998ab}
+
+@media(max-width:720px){
+  .community-thread{padding:0 16px 20px}
+  .guest-identity-picker{grid-template-columns:1fr}
+  .guest-nick-row{width:100%}.guest-nick-row input{width:100%;min-width:0}
+  .guest-comment-form{grid-template-columns:1fr}.guest-comment-form .solid-btn{justify-self:end}
+  .guest-comment{grid-template-columns:32px minmax(0,1fr);gap:9px}.guest-comment-avatar{width:30px;height:30px}
+  .comment-children{padding-left:10px}
+  .community-media-modal{max-height:94vh}
+}

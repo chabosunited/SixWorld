@@ -231,3 +231,16 @@ Cloudflare zeigt dir dann die nötigen DNS-Schritte an.
 8. Variablen/Secrets setzen
 9. Repo deployen
 10. Admin Login testen
+
+## v19 guest comments / media views
+
+No additional Cloudflare binding is required beyond the existing `DB` D1 binding.
+The new Functions create their tables automatically on first use.
+
+Optional manual migration:
+
+```bash
+npx wrangler d1 execute sixworld-db --remote --file=migration_v19.sql
+```
+
+No separate user-account service is used. Guest nicknames are stored only in the visitor's browser and attached to public comments in D1.

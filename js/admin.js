@@ -23,7 +23,7 @@
 
   const titles={
     dashboard:'Overview', hero:'Hero Slides', leaks:'Leaks / Videos', screens:'Screenshots',
-    news:'News', map:'Interactive Map', settings:'Settings', access:'Access'
+    news:'News', comments:'Comments', map:'Interactive Map', settings:'Settings', access:'Access'
   };
 
   $('#adminTrigger').addEventListener('click',()=>window.SIXWORLD.openModal('loginModal'));
@@ -266,7 +266,7 @@
   function renderTab(){
     $$('.admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));
     $('#adminTitle').textContent=titles[tab] || 'Overview';
-    ({dashboard:renderDash,hero:renderHero,leaks:renderLeaks,screens:renderScreens,news:renderNews,map:renderMap,settings:renderSettings,access:renderAccess}[tab])();
+    ({dashboard:renderDash,hero:renderHero,leaks:renderLeaks,screens:renderScreens,news:renderNews,comments:renderComments,map:renderMap,settings:renderSettings,access:renderAccess}[tab])();
   }
 
   function renderDash(){
@@ -388,6 +388,54 @@
       window.SIXWORLD.toast(`Imported ${added} live items.`);
       renderNews();
     };
+  }
+
+  async function renderComments(){
+    $('#adminContent').innerHTML=`
+      <section class="admin-section">
+        <div class="admin-section-heading"><div><h3>Guest Comments</h3><p class="inline-note">Review guest comments and replies posted below videos and screenshots. Deleting a parent comment also removes its replies.</p></div><button class="ghost-btn" id="refreshComments">REFRESH</button></div>
+        <div class="comment-admin-filters"><button class="chip active" data-comment-filter="all">ALL</button><button class="chip" data-comment-filter="video">VIDEOS</button><button class="chip" data-comment-filter="screenshot">SCREENSHOTS</button></div>
+        <div id="adminCommentsList" class="admin-comments-list"><div class="inline-note">Loading comments…</div></div>
+      </section>`;
+    $('#refreshComments').onclick=renderComments;
+    let items=[];
+    try{
+      const r=await fetch('/api/admin/comments',{credentials:'same-origin',cache:'no-store'});
+      const d=await r.json();
+      if(!r.ok)throw new Error(d?.error||`HTTP ${r.status}`);
+      items=Array.isArray(d.items)?d.items:[];
+    }catch(e){
+      $('#adminCommentsList').innerHTML='<div class="codebox">Comments could not be loaded. Check the admin session and Cloudflare Functions.</div>';
+      return;
+    }
+    function contentTitle(c){
+      const list=c.media_type==='video'?draft.leaks:draft.screenshots;
+      return list.find(x=>String(x.id)===String(c.content_id))?.title || c.content_id;
+    }
+    function paint(filter='all'){
+      const filtered=filter==='all'?items:items.filter(x=>x.media_type===filter);
+      $('#adminCommentsList').innerHTML=filtered.length?filtered.map(c=>`
+        <article class="admin-comment-row" data-comment-type="${window.SIXWORLD.escapeHtml(c.media_type)}">
+          <div class="admin-comment-top"><div><span class="comment-type-badge ${c.media_type}">${c.media_type==='video'?'VIDEO':'SCREENSHOT'}</span><b>${window.SIXWORLD.escapeHtml(contentTitle(c))}</b></div><button class="admin-delete-comment" data-comment-delete="${c.id}">DELETE</button></div>
+          <div class="admin-comment-meta"><b>${window.SIXWORLD.escapeHtml(c.nickname)}</b><span>${window.SIXWORLD.escapeHtml(c.created_at||'')}</span>${c.parent_id?`<span>Reply to #${c.parent_id}</span>`:''}</div>
+          <p>${window.SIXWORLD.escapeHtml(c.body).replace(/\n/g,'<br>')}</p>
+        </article>`).join(''):'<div class="no-admin-comments">No comments in this filter.</div>';
+      $$('[data-comment-delete]','#adminCommentsList').forEach(btn=>btn.onclick=async()=>{
+        if(!confirm('Delete this comment and all of its replies?'))return;
+        btn.disabled=true;btn.textContent='DELETING…';
+        try{
+          const r=await fetch(`/api/admin/comments?id=${encodeURIComponent(btn.dataset.commentDelete)}`,{method:'DELETE',credentials:'same-origin'});
+          const d=await r.json().catch(()=>({}));
+          if(!r.ok)throw new Error(d?.error||`HTTP ${r.status}`);
+          window.SIXWORLD.toast('Comment deleted.');
+          await renderComments();
+        }catch(e){window.SIXWORLD.toast('Comment delete failed.');btn.disabled=false;btn.textContent='DELETE';}
+      });
+    }
+    $$('.comment-admin-filters [data-comment-filter]').forEach(btn=>btn.onclick=()=>{
+      $$('.comment-admin-filters [data-comment-filter]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');paint(btn.dataset.commentFilter);
+    });
+    paint('all');
   }
 
   function renderMap(){
