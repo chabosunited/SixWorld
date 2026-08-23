@@ -3,6 +3,7 @@
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const escapeHtml = (v='') => String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const FALLBACK_KEY = 'sixworld_content_v3';
+  const DEFAULT_NEWS_IMAGE = 'assets/news-default.png';
   const app = window.SIXWORLD = { content:null, backend:false, escapeHtml, FALLBACK_KEY, toast:null, liveFeedItems:[], viewCache:new Map(), community:{active:null,items:[],replyTo:null} };
 
   async function loadContent(){
@@ -56,7 +57,7 @@
     app.content.hero.forEach(x=>x.image=migratePath(x.image));
     app.content.leaks.forEach(x=>x.thumb=migratePath(x.thumb));
     app.content.screenshots.forEach(x=>x.image=migratePath(x.image));
-    app.content.news.forEach(x=>x.image=migratePath(x.image));
+    app.content.news.forEach(x=>x.image=migratePath(x.image)||DEFAULT_NEWS_IMAGE);
 
     app.content.map ||= {};
     const m=app.content.map;
@@ -374,6 +375,16 @@
   const mapClass = cat => ['district','landmark','activity','shop','safehouse','secret','transport'].includes(cat) ? cat : 'landmark';
 
   function parseTime(v){ const t = Date.parse(v||''); return Number.isFinite(t) ? t : 0; }
+  function newsImage(value){ return migratePath(value)||DEFAULT_NEWS_IMAGE; }
+  function attachNewsImageFallback(scope=document){
+    $$('img[data-news-fallback]',scope).forEach(img=>{
+      img.onerror=()=>{
+        if(img.dataset.fallbackApplied==='1') return;
+        img.dataset.fallbackApplied='1';
+        img.src=DEFAULT_NEWS_IMAGE;
+      };
+    });
+  }
   function dedupeNews(items){
     const seen = new Set();
     return items.filter(item=>{
@@ -410,7 +421,10 @@
       fetchFeed(`/api/feed/reddit?subreddits=${encodeURIComponent(subreddits.join(','))}`),
       fetchFeed(`/api/feed/x?user=${encodeURIComponent(xUser)}`)
     ]);
-    app.liveFeedItems = dedupeNews([...xFeed, ...reddit]).sort((a,b)=>parseTime(b.date)-parseTime(a.date)).slice(0,maxItems);
+    app.liveFeedItems = dedupeNews([...xFeed, ...reddit])
+      .map(item=>({...item,image:migratePath(item.image)||DEFAULT_NEWS_IMAGE}))
+      .sort((a,b)=>parseTime(b.date)-parseTime(a.date))
+      .slice(0,maxItems);
     if(!silent){
       renderHome();
       renderNews();
@@ -502,7 +516,7 @@
     const news=mergedNewsList().slice(0,5);
     $('#homeNews').innerHTML = homePanelHeader('news','home.news','#news') + news.map(n=>`
       <a class="news-mini" href="${escapeHtml(n.url||'#news')}" target="${String(n.url||'').startsWith('http')?'_blank':'_self'}">
-        <div class="thumb"><img src="${escapeHtml(n.image)}" alt=""></div>
+        <div class="thumb"><img data-news-fallback src="${escapeHtml(newsImage(n.image))}" alt=""></div>
         <div class="mini-copy"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.date)}</small></div>
       </a>`).join('');
 
@@ -517,6 +531,7 @@
         <div class="map-preview-ui"><span>+</span><span>−</span><span>⌖</span></div>
         <span class="map-preview-label">${escapeHtml(app.content.map?.introLabel||'VICE CITY & BEYOND')}</span>
       </a>`;
+    attachNewsImageFallback($('#homeNews'));
   }
 
   function renderLeaks(){
@@ -544,10 +559,11 @@
     const arr=mergedNewsList();
     $('#newsList').innerHTML = arr.map(n=>`
       <a class="news-item" href="${escapeHtml(n.url||'#')}" target="${String(n.url||'').startsWith('http')?'_blank':'_self'}">
-        <img src="${escapeHtml(n.image)}" alt="">
+        <img data-news-fallback src="${escapeHtml(newsImage(n.image))}" alt="">
         <div><span class="source-badge">${escapeHtml(n.source||'NEWS')}</span><h3>${escapeHtml(n.title)}</h3><p>${escapeHtml(n.summary||'')}</p><small>${escapeHtml(n.date||'')}</small></div>
         <div class="arrow">→</div>
       </a>`).join('');
+    attachNewsImageFallback($('#newsList'));
   }
 
   function getMapCategories(){ return app.content.map?.categories || []; }

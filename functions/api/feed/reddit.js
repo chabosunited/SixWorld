@@ -76,7 +76,7 @@ function parseFeed(xml, subreddit) {
       title,
       date,
       source: `r/${subreddit}`,
-      image: image || 'assets/gtaimage1.png',
+      image: image || 'assets/news-default.png',
       summary: cleanSummary && cleanSummary !== title
         ? cleanSummary.slice(0, 240)
         : `New post from r/${subreddit}${author ? ` · u/${author}` : ''}`,

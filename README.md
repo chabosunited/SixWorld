@@ -194,3 +194,18 @@ Added a dedicated **Download** button for screenshots only (not videos).
 - The button downloads the currently opened screenshot using its title as the filename when possible.
 - Videos remain view-only and do not show a download action.
 - Includes EN/DE label support (`DOWNLOAD` / `HERUNTERLADEN`).
+
+
+## v23 — Default News Image
+
+News items without a usable image now use:
+
+`assets/news-default.png`
+
+This applies to:
+- Reddit live-feed posts without an image
+- Rockstar/X feed posts without media
+- manually managed News items with an empty image field
+- broken external News image URLs (frontend fallback)
+
+The fallback artwork is the supplied SIXWORLD "LATEST NEWS" image.
