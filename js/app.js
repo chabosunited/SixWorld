@@ -4,6 +4,14 @@
   const escapeHtml = (v='') => String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const FALLBACK_KEY = 'sixworld_content_v3';
   const DEFAULT_NEWS_IMAGE = 'assets/news-default.png';
+  const LEGACY_ASSET_PATHS={
+    'assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg':'assets/gtaimage6.jpg',
+    'assets/GTA_6_New_Release_Date_Explained_d65d2837da.png':'assets/gtaimage3.png',
+    'assets/GTA-6-artwork-characters-larger.jpg':'assets/gtaimage4.jpg',
+    'assets/pngs/gta_vi_6_characters_transparent_png_by_wallpaper_background_dlqugsx-pre.png':'assets/pngs/gta6characters.png',
+    'assets/pngs/gta-vi-3d-v0-kriobc9v092e1.webp':'assets/pngs/gtavilogocustom.webp'
+  };
+  const migratePath=v=>LEGACY_ASSET_PATHS[v]||v;
   const app = window.SIXWORLD = { content:null, backend:false, escapeHtml, FALLBACK_KEY, toast:null, liveFeedItems:[], viewCache:new Map(), community:{active:null,items:[],replyTo:null} };
 
   async function loadContent(){
@@ -46,14 +54,6 @@
     delete app.content.feeds.subreddit;
 
     // Asset names were shortened in v9. Migrate older D1 content automatically.
-    const legacyPaths={
-      'assets/gta-6-everything-we-know-what-to-expect-9e97577643.jpg':'assets/gtaimage6.jpg',
-      'assets/GTA_6_New_Release_Date_Explained_d65d2837da.png':'assets/gtaimage3.png',
-      'assets/GTA-6-artwork-characters-larger.jpg':'assets/gtaimage4.jpg',
-      'assets/pngs/gta_vi_6_characters_transparent_png_by_wallpaper_background_dlqugsx-pre.png':'assets/pngs/gta6characters.png',
-      'assets/pngs/gta-vi-3d-v0-kriobc9v092e1.webp':'assets/pngs/gtavilogocustom.webp'
-    };
-    const migratePath=v=>legacyPaths[v]||v;
     app.content.hero.forEach(x=>x.image=migratePath(x.image));
     app.content.leaks.forEach(x=>x.thumb=migratePath(x.thumb));
     app.content.screenshots.forEach(x=>x.image=migratePath(x.image));

@@ -209,3 +209,18 @@ This applies to:
 - broken external News image URLs (frontend fallback)
 
 The fallback artwork is the supplied SIXWORLD "LATEST NEWS" image.
+
+
+## v24 — v23 Render Regression Fix
+
+v23 introduced a JavaScript scope regression in the new default-news-image logic:
+`migratePath()` was called by live News rendering but was only defined inside `normalizeContent()`.
+
+That stopped `renderHome()` after Leaks/Screenshots and left Latest News and Interactive Map empty.
+It also affected responsive/mobile rendering because the same JavaScript execution aborted there.
+
+v24 moves the asset migration helper to shared scope while preserving:
+- the new `assets/news-default.png` fallback;
+- v22 screenshot download button;
+- v21 mobile layout fixes;
+- v20 view counters / Home map / drag ordering.
