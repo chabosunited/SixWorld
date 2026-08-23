@@ -137,7 +137,7 @@
       'footer.project':'© 2026 SIXWORLD — FAN PROJECT','footer.disclaimer':'NOT AFFILIATED WITH ROCKSTAR GAMES OR TAKE-TWO INTERACTIVE.',
       'login.restricted':'RESTRICTED','login.authorized':'Authorized access only.','login.access':'ACCESS PANEL','login.hint':'Secure backend login when deployed. Local preview uses demo credentials.',
       'search.placeholder':'Search...','menu.open':'Open menu','menu.close':'Close menu','profile.notice':'Community profiles can be connected as a later module.',
-      'community.views':'views','community.comments':'COMMENTS','community.guestTitle':'Join as a guest','community.guestHelp':'Choose a nickname to comment. No account or password is required.','community.nickname':'Nickname','community.useNickname':'USE NICKNAME','community.commentingAs':'Commenting as','community.change':'CHANGE','community.placeholder':'Write a comment...','community.replyPlaceholder':'Write a reply...','community.post':'POST COMMENT','community.reply':'REPLY','community.cancel':'CANCEL','community.noComments':'No comments yet. Be the first to comment.','community.loading':'Loading comments...','community.reserved':'This nickname is reserved.','community.nickLength':'Nickname must be 2–24 characters.','community.postFailed':'Comment could not be posted.'
+      'community.views':'views','community.comments':'COMMENTS','community.guestTitle':'Join as a guest','community.guestHelp':'Choose a nickname to comment. No account or password is required.','community.nickname':'Nickname','community.useNickname':'USE NICKNAME','community.commentingAs':'Commenting as','community.change':'CHANGE','community.placeholder':'Write a comment...','community.replyPlaceholder':'Write a reply...','community.post':'POST COMMENT','community.reply':'REPLY','community.cancel':'CANCEL','community.noComments':'No comments yet. Be the first to comment.','community.loading':'Loading comments...','community.reserved':'This nickname is reserved.','community.nickLength':'Nickname must be 2–24 characters.','community.postFailed':'Comment could not be posted.','community.download':'DOWNLOAD'
     },
     de:{
       'nav.home':'START','nav.leaks':'LEAKS','nav.screenshots':'SCREENSHOTS','nav.news':'NEWS','nav.map':'KARTE',
@@ -151,7 +151,7 @@
       'footer.project':'© 2026 SIXWORLD — FANPROJEKT','footer.disclaimer':'NICHT MIT ROCKSTAR GAMES ODER TAKE-TWO INTERACTIVE VERBUNDEN.',
       'login.restricted':'GESCHÜTZT','login.authorized':'Nur für autorisierte Zugriffe.','login.access':'ADMIN PANEL ÖFFNEN','login.hint':'Sicherer Backend-Login nach dem Deployment. Die lokale Vorschau verwendet Demo-Zugangsdaten.',
       'search.placeholder':'Suchen...','menu.open':'Menü öffnen','menu.close':'Menü schließen','profile.notice':'Community-Profile können später als eigenes Modul ergänzt werden.',
-      'community.views':'Aufrufe','community.comments':'KOMMENTARE','community.guestTitle':'Als Gast teilnehmen','community.guestHelp':'Wähle einen Nicknamen zum Kommentieren. Kein Account und kein Passwort erforderlich.','community.nickname':'Nickname','community.useNickname':'NICKNAME VERWENDEN','community.commentingAs':'Kommentieren als','community.change':'ÄNDERN','community.placeholder':'Kommentar schreiben...','community.replyPlaceholder':'Antwort schreiben...','community.post':'KOMMENTIEREN','community.reply':'ANTWORTEN','community.cancel':'ABBRECHEN','community.noComments':'Noch keine Kommentare. Sei der Erste.','community.loading':'Kommentare werden geladen...','community.reserved':'Dieser Nickname ist reserviert.','community.nickLength':'Der Nickname muss 2–24 Zeichen lang sein.','community.postFailed':'Kommentar konnte nicht veröffentlicht werden.'
+      'community.views':'Aufrufe','community.comments':'KOMMENTARE','community.guestTitle':'Als Gast teilnehmen','community.guestHelp':'Wähle einen Nicknamen zum Kommentieren. Kein Account und kein Passwort erforderlich.','community.nickname':'Nickname','community.useNickname':'NICKNAME VERWENDEN','community.commentingAs':'Kommentieren als','community.change':'ÄNDERN','community.placeholder':'Kommentar schreiben...','community.replyPlaceholder':'Antwort schreiben...','community.post':'KOMMENTIEREN','community.reply':'ANTWORTEN','community.cancel':'ABBRECHEN','community.noComments':'Noch keine Kommentare. Sei der Erste.','community.loading':'Kommentare werden geladen...','community.reserved':'Dieser Nickname ist reserviert.','community.nickLength':'Der Nickname muss 2–24 Zeichen lang sein.','community.postFailed':'Kommentar konnte nicht veröffentlicht werden.','community.download':'HERUNTERLADEN'
     }
   };
   app.language=localStorage.getItem('sixworld_language')||'en';
@@ -206,6 +206,39 @@
   }
   function formatCount(value){return Number(value||0).toLocaleString(app.language==='de'?'de-DE':'en-US');}
   function formatViews(value){return `${formatCount(value)} ${t('community.views')}`;}
+  function sanitizeFilename(value=''){return String(value||'').replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim();}
+  function screenshotFilename(item={}){
+    const fromUrl=(String(item.image||'').split('?')[0].split('#')[0].split('/').pop()||'').trim();
+    const ext=(fromUrl.match(/\.([a-zA-Z0-9]{3,5})$/)||[])[1]||'jpg';
+    const title=sanitizeFilename(item.title||'Screenshot');
+    return `${title || 'Screenshot'}.${ext}`;
+  }
+  async function downloadScreenshot(item){
+    if(!item?.image) return;
+    const fileName=screenshotFilename(item);
+    try{
+      const res=await fetch(item.image,{mode:'cors',cache:'no-store'});
+      if(!res.ok) throw new Error('fetch_failed');
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }catch(err){
+      const a=document.createElement('a');
+      a.href=item.image;
+      a.download=fileName;
+      a.target='_blank';
+      a.rel='noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  }
   function mediaViewKey(type,id){return `${type}:${id}`;}
   async function fetchMediaViews(type,item,{force=false}={}){
     const key=mediaViewKey(type,item?.id||'');
@@ -683,10 +716,16 @@
     hydrateVideoViewCounts();
   }
   async function showShot(item){
+    app.activeScreenshot=item;
     $('#lightboxImage').src=item.image;
     $('#lightboxTitle').textContent=item.title||'';
     $('#lightboxSource').textContent=item.source||'';
     $('#lightboxViews').textContent=`— ${t('community.views')}`;
+    const downloadBtn=$('#lightboxDownloadBtn');
+    if(downloadBtn){
+      downloadBtn.onclick=()=>downloadScreenshot(item);
+      downloadBtn.setAttribute('aria-label',`${t('community.download')} ${item.title||'screenshot'}`);
+    }
     openModal('lightbox');
     await registerMediaView('screenshot',item);
     loadComments('screenshot',item,'screenshotComments');

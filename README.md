@@ -184,3 +184,13 @@ v20 introduced late desktop CSS rules that overrode the existing mobile Home lay
 - mobile Interactive Map preview has a fixed, sensible height and uses `object-fit: contain`;
 - screenshots remain a two-column mobile gallery;
 - leak/news rows use compact mobile dimensions.
+
+
+## v22 — Screenshot Download Button
+
+Added a dedicated **Download** button for screenshots only (not videos).
+
+- Screenshot lightbox now shows a `DOWNLOAD` button.
+- The button downloads the currently opened screenshot using its title as the filename when possible.
+- Videos remain view-only and do not show a download action.
+- Includes EN/DE label support (`DOWNLOAD` / `HERUNTERLADEN`).
