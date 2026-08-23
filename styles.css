@@ -1085,3 +1085,31 @@ body::before{
   #homeLeaks .leak-mini,#homeNews .news-mini{padding-top:9px;padding-bottom:9px}
   #homeLeaks .thumb,#homeNews .thumb{min-height:0}
 }
+
+/* ===== SIXWORLD v17 Community Mapping Import ===== */
+.community-map-import{
+  margin-top:14px;
+  padding:14px 16px;
+  border:1px solid rgba(66,230,238,.18);
+  border-radius:14px;
+  background:linear-gradient(90deg,rgba(66,230,238,.055),rgba(255,79,163,.04));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.community-map-import b{
+  display:block;
+  color:#eafcff;
+  font:800 15px/1 var(--font-display);
+  letter-spacing:.04em;
+  margin-bottom:6px;
+}
+.community-map-import small{
+  color:#92a6bc;
+  line-height:1.55;
+}
+.community-map-import .inline-actions{margin-top:0;flex:none}
+@media(max-width:920px){
+  .community-map-import{align-items:flex-start;flex-direction:column}
+}

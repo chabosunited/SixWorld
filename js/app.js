@@ -53,6 +53,10 @@
     m.logo ||= 'assets/logo/Leonidaloga.png';
     m.introLabel ||= 'VICE CITY & BEYOND';
     m.updatedDate ||= 'May 12, 2025';
+    m.communityMapping ||= {};
+    m.communityMapping.enabled = m.communityMapping.enabled !== false;
+    m.communityMapping.version = Number(m.communityMapping.version || 1);
+    m.communityMapping.excludedIds = Array.isArray(m.communityMapping.excludedIds) ? m.communityMapping.excludedIds : [];
     const newCategories=[
       {key:'district',label:'DISTRICTS',legend:'Districts',short:'▦',icon:'▦'},
       {key:'landmark',label:'LANDMARKS',legend:'Landmarks',short:'★',icon:'☆'},
@@ -81,6 +85,32 @@
       discovered:b.discovered||'',
       description:b.description||''
     })) : [];
+  }
+
+
+  async function mergeCommunityMapLocations(){
+    const m=app.content?.map;
+    if(!m || m.communityMapping?.enabled===false) return;
+    try{
+      const r=await fetch('data/community-map-locations.json',{cache:'no-store'});
+      if(!r.ok) return;
+      const data=await r.json();
+      const incoming=Array.isArray(data.locations)?data.locations:[];
+      const excluded=new Set((m.communityMapping?.excludedIds||[]).map(String));
+      const existingIds=new Set((m.blips||[]).map(x=>String(x.id)));
+      const existingLabels=new Set((m.blips||[]).map(x=>String(x.label||'').trim().toLowerCase()).filter(Boolean));
+      for(const loc of incoming){
+        const id=String(loc.id||'');
+        const label=String(loc.label||'').trim().toLowerCase();
+        if(!id || excluded.has(id) || existingIds.has(id) || (label && existingLabels.has(label))) continue;
+        m.blips.push({...loc});
+        existingIds.add(id);
+        if(label) existingLabels.add(label);
+      }
+      m.communityMapping.version=Number(data.version||1);
+      m.communityMapping.source=data.source||'GTA VI Mapping Community / State of Leonida';
+      m.communityMapping.note=data.note||'';
+    }catch(e){}
   }
 
   const iconSvg = {
@@ -303,7 +333,9 @@
     $('#mapDetailTitle').textContent=(blip.label||'LOCATION').toUpperCase();
     $('#mapDetailRegion').textContent=(blip.region||'LEONIDA').toUpperCase();
     $('#mapDetailDescription').textContent=blip.description||'No description yet.';
-    $('#mapDetailTags').innerHTML=mapTagsHtml(blip.tags||[mapCategoryStyle[blip.category]?.label||blip.category]);
+    const detailTags=[...(Array.isArray(blip.tags)?blip.tags:[mapCategoryStyle[blip.category]?.label||blip.category])];
+    if(blip.status && !detailTags.some(x=>String(x).toLowerCase()===String(blip.status).toLowerCase())) detailTags.push(String(blip.status).toUpperCase());
+    $('#mapDetailTags').innerHTML=mapTagsHtml(detailTags);
     $('#mapDetailFacts').innerHTML=`
       <div><span>${factIconSvg('region')} REGION</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
       <div><span>${factIconSvg('district')} DISTRICT</span><b>${escapeHtml(blip.district||'—')}</b></div>
@@ -315,7 +347,9 @@
   }
 
   function renderRecentDiscovered(){
-    const items=(app.content.map?.blips||[]).filter(x=>x.image).slice(-6).reverse();
+    const all=(app.content.map?.blips||[]).filter(x=>x.image);
+    const curated=all.filter(x=>x.recent===true);
+    const items=(curated.length?curated:all.slice(-6).reverse()).slice(0,6);
     $('#recentDiscovered').innerHTML=items.length
       ? items.map(b=>`<button class="recent-card" data-blip-id="${escapeHtml(b.id)}"><img src="${escapeHtml(b.image)}" alt=""><span class="recent-card-copy"><b>${escapeHtml(b.label)}</b><small><i class="recent-cat ${mapClass(b.category)}">${mapIconSvg(b.category,'recent-icon')}</i>${escapeHtml(mapCategoryStyle[b.category]?.label||b.category)}</small></span></button>`).join('')
       : '<div class="recent-empty">NO LOCATIONS DISCOVERED YET</div>';
@@ -559,6 +593,7 @@
   (async()=>{
     app.content = await loadContent();
     normalizeContent();
+    await mergeCommunityMapLocations();
     renderAll();
     route();
     loadSiteStats();

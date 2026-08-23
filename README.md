@@ -103,3 +103,28 @@ The Cloudflare Pages Function `functions/api/feed/reddit.js` uses the public Ato
 - Deleting all map locations in the Admin Panel now stays deleted; demo blips are no longer silently recreated.
 - Recently Discovered is generated only from the currently saved map locations.
 - Home shows up to 5 Leak items and up to 5 Latest News items instead of 3.
+
+
+## v17 — Community Mapping Locations
+
+SIXWORLD now includes an approximate community-map layer with around 60 editable locations researched from the GTA VI Mapping Community / State of Leonida and public GTA VI location research.
+
+Included types:
+- districts / cities
+- landmarks
+- shops / businesses
+- activities
+- safehouses / properties
+- transport
+- secrets
+
+The positions are approximate fan placements on SIXWORLD's own supplied map and are not official Rockstar coordinates.
+
+The layer is automatically merged into the public map. In **Admin Panel → Interactive Map** you can:
+- edit every imported location
+- drag markers to improve their placement
+- delete individual community locations permanently
+- restore the full community set
+- disable the automatic community-map layer
+
+Deleting an imported community marker adds it to an exclusion list so it does not reappear on the next reload.

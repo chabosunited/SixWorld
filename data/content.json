@@ -40,7 +40,7 @@
   "leaks": [
     {
       "id": "l1",
-      "title": "GTA VI – New Gameplay Leak (May 2025)",
+      "title": "GTA VI \u2013 New Gameplay Leak (May 2025)",
       "date": "May 12, 2025",
       "duration": "02:31",
       "thumb": "assets/gtaimage6.jpg",
@@ -58,7 +58,7 @@
     },
     {
       "id": "l3",
-      "title": "GTA VI – Story Details Leak",
+      "title": "GTA VI \u2013 Story Details Leak",
       "date": "May 5, 2025",
       "duration": "03:02",
       "thumb": "assets/gta-6-trailer-2.jpg",
@@ -152,50 +152,50 @@
         "key": "district",
         "label": "DISTRICTS",
         "legend": "Districts",
-        "short": "▦",
-        "icon": "▦"
+        "short": "\u25a6",
+        "icon": "\u25a6"
       },
       {
         "key": "landmark",
         "label": "LANDMARKS",
         "legend": "Landmarks",
-        "short": "★",
-        "icon": "☆"
+        "short": "\u2605",
+        "icon": "\u2606"
       },
       {
         "key": "activity",
         "label": "ACTIVITIES",
         "legend": "Activities",
-        "short": "⚑",
-        "icon": "⚑"
+        "short": "\u2691",
+        "icon": "\u2691"
       },
       {
         "key": "shop",
         "label": "SHOPS",
         "legend": "Shops",
-        "short": "▣",
-        "icon": "▣"
+        "short": "\u25a3",
+        "icon": "\u25a3"
       },
       {
         "key": "safehouse",
         "label": "SAFEHOUSES",
         "legend": "Safehouses",
-        "short": "⌂",
-        "icon": "⌂"
+        "short": "\u2302",
+        "icon": "\u2302"
       },
       {
         "key": "secret",
         "label": "SECRETS",
         "legend": "Secrets",
-        "short": "◇",
-        "icon": "◇"
+        "short": "\u25c7",
+        "icon": "\u25c7"
       },
       {
         "key": "transport",
         "label": "TRANSPORT",
         "legend": "Transport",
-        "short": "▰",
-        "icon": "▰"
+        "short": "\u25b0",
+        "icon": "\u25b0"
       }
     ],
     "blips": [
@@ -203,7 +203,7 @@
         "id": "map_v9_1",
         "label": "Ocean Drive",
         "category": "landmark",
-        "symbol": "★",
+        "symbol": "\u2605",
         "x": 66,
         "y": 40,
         "image": "assets/nighttimepink.webp",
@@ -224,7 +224,7 @@
         "id": "map_v9_2",
         "label": "Vice City Pier",
         "category": "landmark",
-        "symbol": "★",
+        "symbol": "\u2605",
         "x": 61,
         "y": 52,
         "image": "assets/gtaimage2.png",
@@ -244,7 +244,7 @@
         "id": "map_v9_3",
         "label": "Grassrivers Airboats",
         "category": "activity",
-        "symbol": "⚑",
+        "symbol": "\u2691",
         "x": 35,
         "y": 57,
         "image": "assets/daytime.jpg",
@@ -264,7 +264,7 @@
         "id": "map_v9_4",
         "label": "Leonida Mall",
         "category": "shop",
-        "symbol": "▣",
+        "symbol": "\u25a3",
         "x": 50,
         "y": 59,
         "image": "assets/gtaimage1.png",
@@ -284,7 +284,7 @@
         "id": "map_v9_5",
         "label": "Starfish Island",
         "category": "safehouse",
-        "symbol": "⌂",
+        "symbol": "\u2302",
         "x": 54,
         "y": 69,
         "image": "assets/gtaimage4.jpg",
@@ -304,7 +304,7 @@
         "id": "map_v9_6",
         "label": "Underwater Ruins",
         "category": "secret",
-        "symbol": "◇",
+        "symbol": "\u25c7",
         "x": 78,
         "y": 72,
         "image": "assets/nighttime.webp",
@@ -324,7 +324,7 @@
         "id": "map_v9_7",
         "label": "Port Gellhorn Transit",
         "category": "transport",
-        "symbol": "▰",
+        "symbol": "\u25b0",
         "x": 30,
         "y": 37,
         "image": "assets/gtaimage3.png",
@@ -339,7 +339,13 @@
         "featured": false,
         "link": "#map"
       }
-    ]
+    ],
+    "communityMapping": {
+      "enabled": true,
+      "version": 1,
+      "excludedIds": [],
+      "source": "GTA VI Mapping Community / State of Leonida"
+    }
   },
   "feeds": {
     "enabled": true,

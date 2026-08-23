@@ -78,6 +78,9 @@
     ];
     const current=new Map((draft.map.categories||[]).map(x=>[x.key,x]));
     draft.map.categories=requiredCats.map(x=>({...x,...(current.get(x.key)||{})}));
+    draft.map.communityMapping ||= {enabled:true,version:1,excludedIds:[]};
+    draft.map.communityMapping.enabled = draft.map.communityMapping.enabled !== false;
+    draft.map.communityMapping.excludedIds = Array.isArray(draft.map.communityMapping.excludedIds) ? draft.map.communityMapping.excludedIds : [];
     draft.settings ||= {siteName:'SIXWORLD',searchPlaceholder:'Search...',accent:'#ff4fa3',accent2:'#42e6ee'};
     draft.feeds ||= {};
     draft.feeds.enabled = draft.feeds.enabled !== false;
@@ -383,6 +386,16 @@
       <section class="admin-section">
         <h3>Map Setup</h3>
         <p class="inline-note">Zoome mit Mausrad oder + / − in die Map. Ziehe die Map zum Verschieben. Ein kurzer Klick auf eine freie Stelle setzt eine neue Location.</p>
+        <div class="community-map-import">
+          <div>
+            <b>GTA VI MAPPING COMMUNITY LOCATIONS</b>
+            <small>Ca. 60 ungefähre Districts, Landmarks, Shops, Safehouses, Aktivitäten, Transport- und Secret-Punkte. Alle bleiben vollständig editierbar.</small>
+          </div>
+          <div class="inline-actions">
+            <button class="solid-btn" id="importCommunityMap">IMPORT / RESTORE</button>
+            <button class="ghost-btn" id="toggleCommunityMap">${draft.map.communityMapping?.enabled===false?'ENABLE':'DISABLE'} AUTO MAP</button>
+          </div>
+        </div>
         <div class="admin-form" style="margin-top:14px">
           <div class="admin-field"><label>MAP IMAGE PATH / URL</label><input id="mapImageInput" value="${window.SIXWORLD.escapeHtml(draft.map.image||'assets/InteractiveMap/GTA6MAP.png')}"></div>
           <div class="admin-field"><label>LEONIDA LOGO PATH / URL</label><input id="mapLogoInput" value="${window.SIXWORLD.escapeHtml(draft.map.logo||'assets/logo/Leonidaloga.png')}"></div>
@@ -422,6 +435,8 @@
             <div class="admin-field"><label>X %</label><input id="bX" type="number" min="0" max="100" step="0.1" value="${selected?.x??50}"></div>
             <div class="admin-field"><label>Y %</label><input id="bY" type="number" min="0" max="100" step="0.1" value="${selected?.y??50}"></div>
             <div class="admin-field"><label>FEATURED</label><select id="bFeatured"><option value="false" ${selected?.featured?'':'selected'}>false</option><option value="true" ${selected?.featured?'selected':''}>true</option></select></div>
+            <div class="admin-field"><label>MAP STATUS</label><select id="bStatus"><option value="approximate" ${(selected?.status||'approximate')==='approximate'?'selected':''}>approximate</option><option value="confirmed" ${selected?.status==='confirmed'?'selected':''}>confirmed</option><option value="community" ${selected?.status==='community'?'selected':''}>community</option></select></div>
+            <div class="admin-field full"><label>SOURCE / RESEARCH NOTE</label><input id="bSource" value="${window.SIXWORLD.escapeHtml(selected?.source||'')}"></div>
           </div>
         </div>
       </section>
@@ -463,10 +478,11 @@
       b.region=$('#bRegion').value;b.district=$('#bDistrict').value;b.poiCount=+$('#bPoiCount').value||0;b.discovered=$('#bDiscovered').value;
       b.tags=$('#bTags').value.split(',').map(x=>x.trim()).filter(Boolean);b.description=$('#bDesc').value;b.link=$('#bLink').value;
       b.x=+$('#bX').value;b.y=+$('#bY').value;b.featured=$('#bFeatured').value==='true';
+      b.status=$('#bStatus')?.value||b.status||'approximate';b.source=$('#bSource')?.value||b.source||'';
       const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.innerHTML=adminMapIconSvg(b.category);el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
       const row=$(`.blip-item[data-pick-blip="${CSS.escape(String(b.id))}"]`);if(row){row.querySelector('b').textContent=b.label;const n=row.querySelector('.inline-note');if(n)n.textContent=`${b.category} · ${b.x}% / ${b.y}%`;}
     }
-    ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
+    ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured','bStatus','bSource'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
     $$('.blip-item').forEach(item=>item.onclick=()=>{selectedBlipId=item.dataset.pickBlip;renderMap()});
 
     $$('.edit-blip').forEach(btn=>{
@@ -506,7 +522,53 @@
     });
 
     $('#newBlip').onclick=()=>{const b={id:uid('loc'),x:50,y:50,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
-    $('#deleteBlip').onclick=async()=>{if(!selectedBlipId)return;draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));selectedBlipId=draft.map.blips[0]?.id||null;renderMap();await saveDraft('Location deleted & published.')};
+    $('#importCommunityMap')?.addEventListener('click',async()=>{
+      try{
+        const r=await fetch('data/community-map-locations.json',{cache:'no-store'});
+        if(!r.ok) throw new Error('dataset unavailable');
+        const data=await r.json();
+        const incoming=Array.isArray(data.locations)?data.locations:[];
+        draft.map.communityMapping ||= {enabled:true,version:1,excludedIds:[]};
+        draft.map.communityMapping.enabled=true;
+        draft.map.communityMapping.excludedIds=[];
+        draft.map.communityMapping.version=Number(data.version||1);
+        draft.map.communityMapping.source=data.source||'GTA VI Mapping Community / State of Leonida';
+        const existingIds=new Set((draft.map.blips||[]).map(x=>String(x.id)));
+        const existingLabels=new Set((draft.map.blips||[]).map(x=>String(x.label||'').trim().toLowerCase()).filter(Boolean));
+        let added=0;
+        for(const loc of incoming){
+          const id=String(loc.id||'');
+          const label=String(loc.label||'').trim().toLowerCase();
+          if(!id || existingIds.has(id) || (label && existingLabels.has(label))) continue;
+          draft.map.blips.push({...loc});
+          existingIds.add(id); if(label) existingLabels.add(label); added++;
+        }
+        selectedBlipId=draft.map.blips.find(x=>x.sourceSet==='stateofleonida-community')?.id||draft.map.blips[0]?.id||null;
+        await saveDraft(`Community map imported · ${added} new locations published.`);
+        renderMap();
+      }catch(e){
+        window.SIXWORLD.toast('Community map import failed.');
+      }
+    });
+    $('#toggleCommunityMap')?.addEventListener('click',async()=>{
+      draft.map.communityMapping ||= {enabled:true,version:1,excludedIds:[]};
+      draft.map.communityMapping.enabled=!draft.map.communityMapping.enabled;
+      await saveDraft(draft.map.communityMapping.enabled?'Community auto map enabled.':'Community auto map disabled.');
+      renderMap();
+    });
+    $('#deleteBlip').onclick=async()=>{
+      if(!selectedBlipId)return;
+      const deleting=draft.map.blips.find(x=>String(x.id)===String(selectedBlipId));
+      if(deleting?.sourceSet==='stateofleonida-community'){
+        draft.map.communityMapping ||= {enabled:true,version:1,excludedIds:[]};
+        draft.map.communityMapping.excludedIds ||= [];
+        if(!draft.map.communityMapping.excludedIds.includes(String(deleting.id))) draft.map.communityMapping.excludedIds.push(String(deleting.id));
+      }
+      draft.map.blips=draft.map.blips.filter(x=>String(x.id)!==String(selectedBlipId));
+      selectedBlipId=draft.map.blips[0]?.id||null;
+      renderMap();
+      await saveDraft('Location deleted & published.');
+    };
     $('#exportMapJson').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(draft.map,null,2));window.SIXWORLD.toast('Map JSON copied.')}catch(e){window.SIXWORLD.toast('Clipboard unavailable.')}};
   }
 
