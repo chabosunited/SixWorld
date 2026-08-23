@@ -171,3 +171,16 @@ npx wrangler d1 execute sixworld-db --remote --file=migration_v19.sql
 - The grain/noise overlay has been removed from the website background.
 
 Existing v19 D1 installs do not need a manual migration; the API attempts to add the new column automatically. `migration_v20.sql` is included for optional manual use.
+
+
+## v21 — Mobile Layout Hotfix
+
+v20 introduced late desktop CSS rules that overrode the existing mobile Home layout. v21 restores a strict responsive mobile layout:
+
+- logo, language, search and burger stay on one header row;
+- Home dashboard cards are stacked vertically at <= 920px;
+- no horizontal page scrolling / card overlap;
+- Hero stays inside the viewport;
+- mobile Interactive Map preview has a fixed, sensible height and uses `object-fit: contain`;
+- screenshots remain a two-column mobile gallery;
+- leak/news rows use compact mobile dimensions.

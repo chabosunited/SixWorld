@@ -1326,3 +1326,295 @@ body::after{display:none!important}
   .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .map-card .map-preview{min-height:420px!important}
 }
+
+
+/* ===== SIXWORLD v21: MOBILE LAYOUT HOTFIX =====
+   v20's late desktop dashboard/header rules were overriding the earlier mobile rules.
+   These overrides deliberately live at the very end of the stylesheet.
+*/
+@media (max-width:920px){
+  html,body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden!important;
+  }
+
+  /* Keep logo + language + search + burger on ONE row. */
+  .topbar{
+    grid-template-columns:minmax(0,1fr) auto auto auto!important;
+    grid-template-rows:82px!important;
+    align-items:center!important;
+    height:82px!important;
+    min-height:82px!important;
+    padding:0 14px!important;
+    gap:5px!important;
+    overflow:visible!important;
+  }
+  .brand{
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .brand img{
+    width:min(190px,42vw)!important;
+    max-width:100%!important;
+    height:auto!important;
+  }
+  .language-picker,
+  .mobile-quick-actions,
+  .mobile-menu-btn{
+    align-self:center!important;
+    margin:0!important;
+  }
+  .language-current{
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+  }
+  .mobile-quick-actions{
+    display:flex!important;
+    width:40px!important;
+    min-width:40px!important;
+    gap:0!important;
+  }
+  .mobile-quick-btn{
+    width:40px!important;
+    height:40px!important;
+  }
+  .mobile-menu-btn{
+    display:flex!important;
+    width:40px!important;
+    height:40px!important;
+  }
+
+  /* Navigation remains a dropdown, never a second permanent header row. */
+  .header-menu{
+    position:absolute!important;
+    top:76px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    max-width:none!important;
+    margin:0!important;
+  }
+
+  main{
+    width:100%!important;
+    max-width:100%!important;
+    padding:0 14px 28px!important;
+    overflow:visible!important;
+  }
+  .page,
+  .page.active{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+
+  /* Hero must stay completely inside the viewport. */
+  .hero{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:465px!important;
+    border-radius:22px!important;
+    overflow:hidden!important;
+  }
+  .hero-content{
+    width:100%!important;
+    max-width:100%!important;
+    padding:34px 22px 70px!important;
+  }
+  .hero-logo{
+    width:min(100%,330px)!important;
+  }
+  .eyebrow{
+    font-size:40px!important;
+  }
+  .hero-content p{
+    max-width:100%!important;
+    font-size:16px!important;
+  }
+
+  /* Critical v20 regression fix: HOME panels are a vertical stack on mobile. */
+  .dashboard-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-flow:row!important;
+    grid-auto-columns:auto!important;
+    gap:14px!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin-top:16px!important;
+    overflow:visible!important;
+  }
+  .dashboard-grid > .home-panel{
+    position:relative!important;
+    grid-column:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    transform:none!important;
+  }
+
+  .home-panel{
+    padding:14px!important;
+  }
+  .panel-head{
+    margin-bottom:12px!important;
+  }
+  .panel-title{
+    font-size:16px!important;
+  }
+  .panel-link{
+    font-size:13px!important;
+  }
+
+  /* Leak/news rows keep usable proportions instead of overflowing horizontally. */
+  .leak-mini,
+  .news-mini{
+    grid-template-columns:96px minmax(0,1fr)!important;
+    gap:11px!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:10px 0!important;
+  }
+  .mini-copy{
+    min-width:0!important;
+  }
+  .mini-copy b{
+    font-size:14px!important;
+    overflow-wrap:anywhere!important;
+  }
+  .mini-meta{
+    gap:7px!important;
+  }
+
+  /* Screenshots remain a clean 2-column gallery. */
+  .screens-mini{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    width:100%!important;
+    gap:8px!important;
+  }
+  .screens-mini button{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  /* Home map gets a mobile-specific height and never forces a huge page width. */
+  .map-card{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  .map-card .map-preview{
+    width:100%!important;
+    max-width:100%!important;
+    height:310px!important;
+    min-height:310px!important;
+    max-height:310px!important;
+    aspect-ratio:auto!important;
+    overflow:hidden!important;
+  }
+  .home-map-stage{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  .home-map-stage>img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#030918!important;
+  }
+  .home-map-blips{
+    inset:0!important;
+  }
+  .home-map-blip{
+    width:24px!important;
+    height:24px!important;
+  }
+  .home-map-blip .map-custom-icon{
+    width:12px!important;
+    height:12px!important;
+  }
+  .home-live-map .map-preview-ui span{
+    width:32px!important;
+    height:32px!important;
+    font-size:18px!important;
+  }
+
+  /* Prevent any content card from creating horizontal scrolling. */
+  .panel,
+  .media-card,
+  .shot-card,
+  .news-item,
+  .source-panel{
+    max-width:100%!important;
+    min-width:0!important;
+  }
+
+  footer{
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+}
+
+@media (max-width:560px){
+  .topbar{
+    grid-template-rows:76px!important;
+    height:76px!important;
+    min-height:76px!important;
+    padding:0 10px!important;
+    gap:3px!important;
+  }
+  .brand img{
+    width:min(178px,41vw)!important;
+  }
+  .language-current,
+  .mobile-quick-actions,
+  .mobile-quick-btn,
+  .mobile-menu-btn{
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+  }
+  .header-menu{
+    top:70px!important;
+  }
+  main{
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+  .hero{
+    min-height:450px!important;
+    border-radius:19px!important;
+  }
+  .hero-content{
+    padding:32px 18px 66px!important;
+  }
+  .eyebrow{
+    font-size:37px!important;
+  }
+  .hero-logo{
+    width:min(100%,310px)!important;
+  }
+  .dashboard-grid{
+    gap:12px!important;
+  }
+  .home-panel{
+    padding:12px!important;
+  }
+  .map-card .map-preview{
+    height:290px!important;
+    min-height:290px!important;
+    max-height:290px!important;
+  }
+}
