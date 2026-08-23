@@ -3,7 +3,9 @@
     "siteName": "SIXWORLD",
     "searchPlaceholder": "Search...",
     "accent": "#ff4fa3",
-    "accent2": "#42e6ee"
+    "accent2": "#42e6ee",
+    "backgroundImage": "assets/site-background.png",
+    "defaultLanguage": "en"
   },
   "access": {
     "secretText": "sw_6.0.22",
@@ -18,7 +20,10 @@
       "description": "Your ultimate hub for GTA VI news, leaks, screenshots and more.",
       "image": "assets/nighttimepink.webp",
       "cta": "EXPLORE NOW",
-      "href": "#news"
+      "href": "#news",
+      "mediaType": "image",
+      "video": "",
+      "duration": 7
     },
     {
       "id": "h2",
@@ -26,7 +31,10 @@
       "description": "Watch the newest community videos, gameplay analysis and Vice City discoveries in one place.",
       "image": "assets/gtaimage6.jpg",
       "cta": "VIEW LEAKS",
-      "href": "#leaks"
+      "href": "#leaks",
+      "mediaType": "image",
+      "video": "",
+      "duration": 7
     },
     {
       "id": "h3",
@@ -34,7 +42,10 @@
       "description": "Track landmarks, activities, secrets and discoveries across Vice City and beyond.",
       "image": "assets/GTA6MapSideview.png",
       "cta": "OPEN MAP",
-      "href": "#map"
+      "href": "#map",
+      "mediaType": "image",
+      "video": "",
+      "duration": 7
     }
   ],
   "leaks": [

@@ -18,9 +18,20 @@
 
   function normalizeContent(){
     app.content ||= {};
-    app.content.settings ||= {siteName:'SIXWORLD',searchPlaceholder:'Search...',accent:'#ff4fa3',accent2:'#42e6ee'};
+    app.content.settings ||= {};
+    app.content.settings.siteName ||= 'SIXWORLD';
+    app.content.settings.searchPlaceholder ||= 'Search...';
+    app.content.settings.accent ||= '#ff4fa3';
+    app.content.settings.accent2 ||= '#42e6ee';
+    app.content.settings.backgroundImage ||= 'assets/site-background.png';
+    app.content.settings.defaultLanguage ||= 'en';
     app.content.access ||= {secretText:'sw_6.0.22',secretPage:'map',demoUser:'admin',demoPass:'sixworld'};
     app.content.hero ||= [];
+    app.content.hero.forEach(slide=>{
+      slide.mediaType ||= slide.video ? 'video' : 'image';
+      slide.duration = Math.max(2, Math.min(60, Number(slide.duration)||7));
+      slide.video ||= '';
+    });
     app.content.leaks ||= [];
     app.content.screenshots ||= [];
     app.content.news ||= [];
@@ -113,6 +124,60 @@
     }catch(e){}
   }
 
+  const I18N={
+    en:{
+      'nav.home':'HOME','nav.leaks':'LEAKS','nav.screenshots':'SCREENSHOTS','nav.news':'NEWS','nav.map':'MAP',
+      'home.leaks':'LEAKS','home.screenshots':'SCREENSHOTS','home.news':'LATEST NEWS','home.map':'INTERACTIVE MAP','home.viewAll':'VIEW ALL','home.explore':'EXPLORE',
+      'leaks.kicker':'ARCHIVE','leaks.title':'LEAKS','leaks.description':'Gameplay clips, community discoveries and embedded videos from Streamable, Drive, YouTube or direct links.','leaks.videos':'VIDEOS',
+      'screens.kicker':'MEDIA','screens.title':'SCREENSHOTS','screens.description':'Asset-based images and external screenshot links in a clean gallery.','screens.images':'IMAGES',
+      'news.kicker':'LIVE FEED','news.title':'LATEST NEWS','news.description':'Rockstar, X and selected Reddit posts can be loaded automatically or managed manually.','news.refresh':'REFRESH FEEDS','news.sources':'SOURCES','news.sourceNote':'Serverless endpoints provide live feed data after deployment. Manually managed news always remains available.',
+      'map.title':'Map','map.subtitle':'Explore Leonida','map.filters':'Filters','map.filterTitle':'MAP FILTERS','map.resetFilters':'RESET FILTERS','map.selectedLocation':'SELECTED LOCATION','map.legend':'MAP LEGEND','map.hide':'Hide ⌃','map.data':'MAP DATA (FAN-MADE)','map.research':'LOCATION RESEARCH: GTA VI MAPPING COMMUNITY / STATE OF LEONIDA',
+      'map.district':'DISTRICTS','map.landmark':'LANDMARKS','map.activity':'ACTIVITIES','map.shop':'SHOPS','map.safehouse':'SAFEHOUSES','map.secret':'SECRETS','map.transport':'TRANSPORT',
+      'map.region':'REGION','map.districtFact':'DISTRICT','map.poi':'POINTS OF INTEREST','map.discovered':'DISCOVERED','map.recent':'RECENTLY DISCOVERED','map.viewAll':'VIEW ALL →',
+      'footer.project':'© 2026 SIXWORLD — FAN PROJECT','footer.disclaimer':'NOT AFFILIATED WITH ROCKSTAR GAMES OR TAKE-TWO INTERACTIVE.',
+      'login.restricted':'RESTRICTED','login.authorized':'Authorized access only.','login.access':'ACCESS PANEL','login.hint':'Secure backend login when deployed. Local preview uses demo credentials.',
+      'search.placeholder':'Search...','menu.open':'Open menu','menu.close':'Close menu','profile.notice':'Community profiles can be connected as a later module.'
+    },
+    de:{
+      'nav.home':'START','nav.leaks':'LEAKS','nav.screenshots':'SCREENSHOTS','nav.news':'NEWS','nav.map':'KARTE',
+      'home.leaks':'LEAKS','home.screenshots':'SCREENSHOTS','home.news':'AKTUELLE NEWS','home.map':'INTERAKTIVE KARTE','home.viewAll':'ALLE ANZEIGEN','home.explore':'ÖFFNEN',
+      'leaks.kicker':'ARCHIV','leaks.title':'LEAKS','leaks.description':'Gameplay-Clips, Community-Funde und eingebettete Videos von Streamable, Drive, YouTube oder Direktlinks.','leaks.videos':'VIDEOS',
+      'screens.kicker':'MEDIEN','screens.title':'SCREENSHOTS','screens.description':'Bilder aus den Assets und externe Screenshot-Links in einer übersichtlichen Galerie.','screens.images':'BILDER',
+      'news.kicker':'LIVE-FEED','news.title':'AKTUELLE NEWS','news.description':'Rockstar-, X- und ausgewählte Reddit-Posts können automatisch geladen oder manuell verwaltet werden.','news.refresh':'FEEDS AKTUALISIEREN','news.sources':'QUELLEN','news.sourceNote':'Nach dem Deployment liefern die Serverless-Endpunkte Live-Feed-Daten. Manuell gepflegte News bleiben zusätzlich immer verfügbar.',
+      'map.title':'Karte','map.subtitle':'Leonida erkunden','map.filters':'Filter','map.filterTitle':'KARTENFILTER','map.resetFilters':'FILTER ZURÜCKSETZEN','map.selectedLocation':'AUSGEWÄHLTER ORT','map.legend':'KARTENLEGENDE','map.hide':'Ausblenden ⌃','map.data':'KARTENDATEN (FAN-MADE)','map.research':'ORTSRECHERCHE: GTA VI MAPPING COMMUNITY / STATE OF LEONIDA',
+      'map.district':'BEZIRKE','map.landmark':'SEHENSWÜRDIGKEITEN','map.activity':'AKTIVITÄTEN','map.shop':'SHOPS','map.safehouse':'SAFEHOUSES','map.secret':'GEHEIMNISSE','map.transport':'TRANSPORT',
+      'map.region':'REGION','map.districtFact':'BEZIRK','map.poi':'SEHENSWÜRDIGKEITEN','map.discovered':'ENTDECKT','map.recent':'KÜRZLICH ENTDECKT','map.viewAll':'ALLE ANZEIGEN →',
+      'footer.project':'© 2026 SIXWORLD — FANPROJEKT','footer.disclaimer':'NICHT MIT ROCKSTAR GAMES ODER TAKE-TWO INTERACTIVE VERBUNDEN.',
+      'login.restricted':'GESCHÜTZT','login.authorized':'Nur für autorisierte Zugriffe.','login.access':'ADMIN PANEL ÖFFNEN','login.hint':'Sicherer Backend-Login nach dem Deployment. Die lokale Vorschau verwendet Demo-Zugangsdaten.',
+      'search.placeholder':'Suchen...','menu.open':'Menü öffnen','menu.close':'Menü schließen','profile.notice':'Community-Profile können später als eigenes Modul ergänzt werden.'
+    }
+  };
+  app.language=localStorage.getItem('sixworld_language')||'en';
+  function t(key){return I18N[app.language]?.[key]||I18N.en[key]||key;}
+  function translateContentText(value){
+    if(app.language!=='de') return value||'';
+    const known={
+      'Your ultimate hub for GTA VI news, leaks, screenshots and more.':'Deine zentrale Anlaufstelle für GTA VI News, Leaks, Screenshots und mehr.',
+      'Watch the newest community videos, gameplay analysis and Vice City discoveries in one place.':'Sieh dir die neuesten Community-Videos, Gameplay-Analysen und Vice-City-Entdeckungen an einem Ort an.',
+      'Track landmarks, activities, secrets and discoveries across Vice City and beyond.':'Verfolge Sehenswürdigkeiten, Aktivitäten, Geheimnisse und Entdeckungen in Vice City und darüber hinaus.',
+      'EXPLORE NOW':'JETZT ENTDECKEN','VIEW LEAKS':'LEAKS ANZEIGEN','OPEN MAP':'KARTE ÖFFNEN','WELCOME TO':'WILLKOMMEN BEI','LATEST LEAKS':'NEUESTE LEAKS','EXPLORE LEONIDA':'LEONIDA ERKUNDEN'
+    };
+    return known[value]||value||'';
+  }
+  function applyLanguage(lang,rerender=true){
+    app.language=lang==='de'?'de':'en';
+    localStorage.setItem('sixworld_language',app.language);
+    document.documentElement.lang=app.language;
+    $$('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(I18N[app.language]?.[key])el.textContent=t(key);});
+    const search=$('#globalSearch'); if(search) search.placeholder=t('search.placeholder');
+    const flag=$('#languageFlag'),code=$('#languageCode');
+    if(flag)flag.textContent=app.language==='de'?'🇩🇪':'🇬🇧';
+    if(code)code.textContent=app.language==='de'?'DE':'EN';
+    $('#languageMenu')?.classList.remove('open');
+    $('#languageButton')?.setAttribute('aria-expanded','false');
+    if(rerender && app.content){ renderHome();renderMap();setHero(app.heroIndex||0,false,true); }
+  }
+
   const iconSvg = {
     leaks:'<path d="M4 8h16v11H4zM8 8V5h8v3M8 13h.01M12 13h4"/>',
     screens:'<path d="M5 7h3l1-2h6l1 2h3v11H5z"/><circle cx="12" cy="12.5" r="3"/>',
@@ -168,61 +233,94 @@
     return app.liveFeedItems;
   }
 
+  function heroDuration(slide){return Math.max(2,Math.min(60,Number(slide?.duration)||7));}
+  function normalizeHeroVideo(url=''){
+    const raw=String(url||'').trim();
+    if(!raw) return {type:'none',url:''};
+    if(/\.(mp4|webm|ogg)(\?|#|$)/i.test(raw)) return {type:'video',url:raw};
+    if(/youtube\.com\/watch\?v=/i.test(raw)){try{const id=new URL(raw).searchParams.get('v');return {type:'iframe',url:`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&playsinline=1&rel=0`}}catch(e){}}
+    if(/youtu\.be\//i.test(raw)){const id=raw.split('/').pop().split(/[?#]/)[0];return {type:'iframe',url:`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&playsinline=1&rel=0`};}
+    if(/streamable\.com\//i.test(raw)){const id=raw.split('/').filter(Boolean).pop().split(/[?#]/)[0];return {type:'iframe',url:`https://streamable.com/e/${id}?autoplay=1&muted=1`};}
+    if(/vimeo\.com\//i.test(raw)){const id=raw.match(/vimeo\.com\/(?:video\/)?(\d+)/i)?.[1];if(id)return {type:'iframe',url:`https://player.vimeo.com/video/${id}?autoplay=1&muted=1&background=1&loop=1`};}
+    if(/drive\.google\.com\/file\/d\//i.test(raw)){const id=raw.split('/file/d/')[1]?.split('/')[0];if(id)return {type:'iframe',url:`https://drive.google.com/file/d/${id}/preview`};}
+    return {type:'iframe',url:raw};
+  }
+  function renderHeroMedia(slide){
+    const layer=$('#heroVideoLayer'); if(!layer)return;
+    layer.innerHTML='';layer.classList.remove('active');
+    if((slide?.mediaType||'image')!=='video' || !slide.video)return;
+    const media=normalizeHeroVideo(slide.video);
+    if(media.type==='video'){
+      const video=document.createElement('video');
+      video.src=media.url;video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');
+      layer.appendChild(video);video.play().catch(()=>{});
+    }else if(media.type==='iframe'){
+      const frame=document.createElement('iframe');frame.src=media.url;frame.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';frame.allowFullscreen=true;frame.setAttribute('frameborder','0');frame.setAttribute('tabindex','-1');
+      layer.appendChild(frame);
+    }
+    requestAnimationFrame(()=>layer.classList.add('active'));
+  }
+  function scheduleHero(){
+    clearTimeout(app.heroTimer);
+    const slides=app.content.hero||[];if(!slides.length)return;
+    const duration=heroDuration(slides[app.heroIndex]);
+    app.heroTimer=setTimeout(()=>setHero((app.heroIndex+1)%slides.length,false),duration*1000);
+  }
   function renderHero(){
     const slides = app.content.hero || [];
     if(!slides.length) return;
-    app.heroIndex = 0;
+    app.heroIndex = Math.min(app.heroIndex||0,slides.length-1);
     const dots = $('#heroDots');
-    dots.innerHTML = slides.map((_,i)=>`<button aria-label="Slide ${i+1}" data-slide="${i}" class="${i===0?'active':''}"></button>`).join('');
+    dots.innerHTML = slides.map((_,i)=>`<button aria-label="Slide ${i+1}" data-slide="${i}" class="${i===app.heroIndex?'active':''}"></button>`).join('');
     dots.onclick = e => { const b = e.target.closest('button'); if(b) setHero(+b.dataset.slide, true); };
-    setHero(0,false);
-    clearInterval(app.heroTimer);
-    app.heroTimer = setInterval(()=>setHero((app.heroIndex+1)%slides.length,false), 7000);
+    setHero(app.heroIndex,false);
   }
-  function setHero(i,manual){
+  function setHero(i,manual=false,skipSchedule=false){
     const slides = app.content.hero || [];
     const s = slides[i]; if(!s) return;
     app.heroIndex = i;
     const bg = $('#heroBg');
     bg.classList.add('switching');
-    setTimeout(()=>{ bg.style.backgroundImage = `url("${s.image}")`; bg.classList.remove('switching'); }, 150);
-    $('#heroEyebrow').textContent = s.eyebrow || 'WELCOME TO';
-    $('#heroDescription').textContent = s.description || '';
+    setTimeout(()=>{ bg.style.backgroundImage = `url("${s.image||'assets/gta-6-trailer-2.jpg'}")`; bg.classList.remove('switching'); }, 120);
+    renderHeroMedia(s);
+    $('#heroEyebrow').textContent = translateContentText(s.eyebrow || 'WELCOME TO');
+    $('#heroDescription').textContent = translateContentText(s.description || '');
     const cta = $('#heroCta');
-    cta.innerHTML = `${escapeHtml(s.cta||'EXPLORE NOW')} <span>›</span>`;
+    cta.innerHTML = `${escapeHtml(translateContentText(s.cta||'EXPLORE NOW'))} <span>›</span>`;
     cta.href = s.href || '#news';
     $$('#heroDots button').forEach((b,n)=>b.classList.toggle('active', n===i));
+    const duration=heroDuration(s);
     const p = $('#heroProgress');
     p.style.transition = 'none'; p.style.width = '0';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ p.style.transition='width 6.75s linear'; p.style.width='100%'; }));
-    if(manual){ clearInterval(app.heroTimer); app.heroTimer=setInterval(()=>setHero((app.heroIndex+1)%slides.length,false),7000); }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ p.style.transition=`width ${Math.max(.2,duration-.15)}s linear`; p.style.width='100%'; }));
+    if(!skipSchedule)scheduleHero();
   }
 
-  function homePanelHeader(type,title,href,cyan=false){
-    return `<div class="panel-head"><div class="panel-title ${cyan?'cyan':''}">${icon(type)}<span>${title}</span></div><a class="panel-link ${cyan?'cyan':''}" href="${href}">${type==='map'?'EXPLORE ↗':'VIEW ALL'}</a></div>`;
+  function homePanelHeader(type,titleKey,href,cyan=false){
+    return `<div class="panel-head"><div class="panel-title ${cyan?'cyan':''}">${icon(type)}<span>${escapeHtml(t(titleKey))}</span></div><a class="panel-link ${cyan?'cyan':''}" href="${href}">${escapeHtml(type==='map'?t('home.explore'):t('home.viewAll'))}${type==='map'?' ↗':''}</a></div>`;
   }
 
   function renderHome(){
     const leaks=(app.content.leaks||[]).slice(0,5);
-    $('#homeLeaks').innerHTML = homePanelHeader('leaks','LEAKS','#leaks') + leaks.map(l=>`
+    $('#homeLeaks').innerHTML = homePanelHeader('leaks','home.leaks','#leaks') + leaks.map(l=>`
       <div class="leak-mini" data-video-id="${escapeHtml(l.id)}">
         <div class="thumb"><img src="${escapeHtml(l.thumb)}" alt=""><i class="play"></i><span class="duration">${escapeHtml(l.duration||'')}</span></div>
         <div class="mini-copy"><b>${escapeHtml(l.title)}</b><small>${escapeHtml(l.date)}</small></div>
       </div>`).join('');
 
     const shots=(app.content.screenshots||[]).slice(0,6);
-    $('#homeScreens').innerHTML = homePanelHeader('screens','SCREENSHOTS','#screenshots',true) +
+    $('#homeScreens').innerHTML = homePanelHeader('screens','home.screenshots','#screenshots',true) +
       `<div class="screens-mini">${shots.map(s=>`<button data-shot-id="${escapeHtml(s.id)}"><img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.title)}"></button>`).join('')}</div>
        <div class="carousel-pips"><i></i><i></i><i></i><i></i><i></i></div>`;
 
     const news=mergedNewsList().slice(0,5);
-    $('#homeNews').innerHTML = homePanelHeader('news','LATEST NEWS','#news') + news.map(n=>`
+    $('#homeNews').innerHTML = homePanelHeader('news','home.news','#news') + news.map(n=>`
       <a class="news-mini" href="${escapeHtml(n.url||'#news')}" target="${String(n.url||'').startsWith('http')?'_blank':'_self'}">
         <div class="thumb"><img src="${escapeHtml(n.image)}" alt=""></div>
         <div class="mini-copy"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.date)}</small></div>
       </a>`).join('');
 
-    $('#homeMap').innerHTML = homePanelHeader('map','INTERACTIVE MAP','#map',true) +
+    $('#homeMap').innerHTML = homePanelHeader('map','home.map','#map',true) +
       `<a href="#map" class="map-preview" aria-label="Interactive Map">
         <img src="${escapeHtml(app.content.map?.image||'assets/InteractiveMap/GTA6MAP.png')}" alt="Map">
         <div class="map-preview-overlay"></div>
@@ -297,7 +395,7 @@
 
   function renderMapFilters(){
     const filters=getMapCategories();
-    $('#mapFilters').innerHTML=filters.map((f,i)=>`<button class="map-filter-btn ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}"><span class="map-filter-icon ${mapClass(f.key)}">${mapIconSvg(f.key)}</span><span>${escapeHtml(f.label||f.key)}</span></button>`).join('');
+    $('#mapFilters').innerHTML=filters.map((f,i)=>`<button class="map-filter-btn ${i===0?'active':''}" data-map-filter="${escapeHtml(f.key)}"><span class="map-filter-icon ${mapClass(f.key)}">${mapIconSvg(f.key)}</span><span>${escapeHtml(t('map.'+f.key)||f.label||f.key)}</span></button>`).join('');
     $$('.map-filter-btn[data-map-filter]').forEach(b=>b.onclick=()=>{
       const already=b.classList.contains('active');
       $$('.map-filter-btn').forEach(x=>x.classList.remove('active'));
@@ -308,7 +406,7 @@
   }
 
   function renderMapLegend(){
-    $('#mapLegend').innerHTML=getMapCategories().filter(x=>x.key!=='district').map(cat=>`<div class="legend-ref-item"><i class="legend-pin ${mapClass(cat.key)}">${mapIconSvg(cat.key,'legend-icon')}</i><span>${escapeHtml(cat.legend||cat.label||cat.key)}</span></div>`).join('');
+    $('#mapLegend').innerHTML=getMapCategories().filter(x=>x.key!=='district').map(cat=>`<div class="legend-ref-item"><i class="legend-pin ${mapClass(cat.key)}">${mapIconSvg(cat.key,'legend-icon')}</i><span>${escapeHtml(t('map.'+cat.key)||cat.legend||cat.label||cat.key)}</span></div>`).join('');
   }
 
   function mapTagsHtml(tags=[]){ return tags.slice(0,4).map(t=>`<span>${escapeHtml(t)}</span>`).join(''); }
@@ -337,10 +435,10 @@
     if(blip.status && !detailTags.some(x=>String(x).toLowerCase()===String(blip.status).toLowerCase())) detailTags.push(String(blip.status).toUpperCase());
     $('#mapDetailTags').innerHTML=mapTagsHtml(detailTags);
     $('#mapDetailFacts').innerHTML=`
-      <div><span>${factIconSvg('region')} REGION</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
-      <div><span>${factIconSvg('district')} DISTRICT</span><b>${escapeHtml(blip.district||'—')}</b></div>
-      <div><span>${factIconSvg('poi')} POINTS OF INTEREST</span><b>${escapeHtml(blip.poiCount??'—')}</b></div>
-      <div><span>${factIconSvg('date')} DISCOVERED</span><b>${escapeHtml(blip.discovered||'—')}</b></div>`;
+      <div><span>${factIconSvg('region')} ${escapeHtml(t('map.region'))}</span><b>${escapeHtml(blip.region||'Leonida')}</b></div>
+      <div><span>${factIconSvg('district')} ${escapeHtml(t('map.districtFact'))}</span><b>${escapeHtml(blip.district||'—')}</b></div>
+      <div><span>${factIconSvg('poi')} ${escapeHtml(t('map.poi'))}</span><b>${escapeHtml(blip.poiCount??'—')}</b></div>
+      <div><span>${factIconSvg('date')} ${escapeHtml(t('map.discovered'))}</span><b>${escapeHtml(blip.discovered||'—')}</b></div>`;
     $('#mapFeaturedBadge').style.display=blip.featured?'inline-flex':'none';
     $$('.map-blip').forEach(x=>x.classList.toggle('selected',String(x.dataset.id)===String(blip.id)));
     $$('.recent-card').forEach(x=>x.classList.toggle('selected',String(x.dataset.blipId)===String(blip.id)));
@@ -377,7 +475,9 @@
     const s=app.content.settings||{};
     document.documentElement.style.setProperty('--pink', s.accent || '#ff4fa3');
     document.documentElement.style.setProperty('--cyan', s.accent2 || '#42e6ee');
-    $('#globalSearch').placeholder = s.searchPlaceholder || 'Search...';
+    const bg=String(s.backgroundImage||'assets/site-background.png').replace(/["\\]/g,'');
+    document.documentElement.style.setProperty('--site-background-image', `url("${bg}")`);
+    $('#globalSearch').placeholder = app.language==='de'?'Suchen...':(s.searchPlaceholder || 'Search...');
     $('#adminTrigger').textContent = app.content.access?.secretText || 'sw_6.0.22';
     document.title = `${s.siteName || 'SIXWORLD'} — GTA VI News, Leaks & Map`;
   }
@@ -390,6 +490,7 @@
     renderScreens();
     renderNews();
     renderMap();
+    applyLanguage(app.language,false);
   }
 
   function openModal(id){ const m=$('#'+id); m.classList.add('open'); m.setAttribute('aria-hidden','false'); }
@@ -433,7 +534,7 @@
     menu.classList.toggle('open',!!open);
     btn.classList.toggle('open',!!open);
     btn.setAttribute('aria-expanded',open?'true':'false');
-    btn.setAttribute('aria-label',open?'Menü schließen':'Menü öffnen');
+    btn.setAttribute('aria-label',open?t('menu.close'):t('menu.open'));
   }
   $('#mobileMenuBtn')?.addEventListener('click',e=>{
     e.stopPropagation();
@@ -446,7 +547,7 @@
   });
   $('#mobileProfileBtn')?.addEventListener('click',e=>{
     e.stopPropagation();
-    toast('Community profiles can be connected as a later module.');
+    toast(t('profile.notice'));
   });
   $('#mobileFilterToggle')?.addEventListener('click',()=>{
     $('.map-filter-panel')?.classList.toggle('expanded');
@@ -455,6 +556,14 @@
   document.addEventListener('click',()=>{ if(matchMedia('(max-width:920px)').matches) setMobileMenu(false); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') setMobileMenu(false); });
   addEventListener('resize',()=>{ if(!matchMedia('(max-width:920px)').matches) setMobileMenu(false); });
+
+  function setLanguageMenu(open){
+    $('#languageMenu')?.classList.toggle('open',!!open);
+    $('#languageButton')?.setAttribute('aria-expanded',open?'true':'false');
+  }
+  $('#languageButton')?.addEventListener('click',e=>{e.stopPropagation();setLanguageMenu(!$('#languageMenu')?.classList.contains('open'));});
+  $('#languageMenu')?.addEventListener('click',e=>{e.stopPropagation();const btn=e.target.closest('[data-language]');if(btn)applyLanguage(btn.dataset.language,true);});
+  document.addEventListener('click',()=>setLanguageMenu(false));
 
   function route(){
     const r=(location.hash||'#home').slice(1).split('?')[0];
@@ -542,7 +651,7 @@
     });
   });
 
-  $('#profileBtn').addEventListener('click',()=>toast('Community profiles can be connected as a later module.'));
+  $('#profileBtn').addEventListener('click',()=>toast(t('profile.notice')));
   $('#syncNewsBtn').addEventListener('click',()=>refreshFeeds({silent:false}));
 
   async function loadSiteStats(){
@@ -589,10 +698,12 @@
   app.renderAll=renderAll;
   app.toast=toast;
   app.refreshFeeds=refreshFeeds;
+  app.applyLanguage=applyLanguage;
 
   (async()=>{
     app.content = await loadContent();
     normalizeContent();
+    if(!localStorage.getItem('sixworld_language')) app.language=app.content.settings?.defaultLanguage==='de'?'de':'en';
     await mergeCommunityMapLocations();
     renderAll();
     route();

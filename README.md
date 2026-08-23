@@ -128,3 +128,14 @@ The layer is automatically merged into the public map. In **Admin Panel → Inte
 - disable the automatic community-map layer
 
 Deleting an imported community marker adds it to an exclusion list so it does not reappear on the next reload.
+
+
+## v18 — Slider Media, Background & Language
+
+- Website background can be changed in **Admin Panel → Settings** using an asset path or image URL.
+- Every Hero Slide now has its own duration in seconds.
+- Hero Slides can be either an image or a muted autoplay video. Supported inputs include YouTube, Streamable, Vimeo, direct MP4/WebM and embeddable URLs.
+- The Home-page Interactive Map card is larger on wide desktop layouts.
+- Main cards use a stronger silver/metallic border treatment.
+- Public interface text is English by default.
+- Header language selector switches between English and German without an external translation API. Static interface text is translated locally for speed and reliability; external feed/post titles remain in their source language.

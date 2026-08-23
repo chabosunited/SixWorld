@@ -1113,3 +1113,74 @@ body::before{
 @media(max-width:920px){
   .community-map-import{align-items:flex-start;flex-direction:column}
 }
+
+/* ===== SIXWORLD v18: media slider, language switch, metallic panels, larger home map ===== */
+:root{
+  --site-background-image:url("assets/site-background.png");
+  --metal-line:rgba(206,216,232,.34);
+  --metal-line-bright:rgba(240,244,250,.46);
+}
+body{
+  background:
+    linear-gradient(rgba(4,9,18,.90),rgba(4,9,18,.90)),
+    var(--site-background-image) center center / cover fixed no-repeat !important;
+}
+.topbar{grid-template-columns:260px minmax(0,1fr) 360px auto;column-gap:16px}
+
+.language-picker{position:relative;z-index:55;justify-self:end}
+.language-current{
+  height:42px;min-width:78px;padding:0 12px;border-radius:14px;border:1.5px solid var(--metal-line);
+  background:linear-gradient(180deg,rgba(18,27,42,.92),rgba(8,15,28,.94));color:#fff;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 24px rgba(0,0,0,.18);font:800 14px/1 var(--font-display);letter-spacing:.05em
+}
+.language-current:hover{border-color:var(--metal-line-bright)}
+.language-current #languageFlag{font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:19px}
+.language-chevron{color:#8fa0b7;font-size:14px}
+.language-menu{
+  position:absolute;right:0;top:50px;min-width:158px;padding:7px;display:none;gap:5px;border-radius:14px;border:1.5px solid var(--metal-line);
+  background:rgba(5,12,24,.985);backdrop-filter:blur(18px);box-shadow:0 18px 48px rgba(0,0,0,.42)
+}
+.language-menu.open{display:grid}
+.language-menu button{height:40px;border:0;border-radius:9px;background:transparent;color:#e9eef7;display:flex;align-items:center;gap:10px;padding:0 11px;cursor:pointer;text-align:left}
+.language-menu button:hover{background:rgba(255,79,163,.10);color:#fff}
+.language-menu button span:first-child{font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:18px}
+
+.hero-video-layer{position:absolute;inset:0;z-index:1;overflow:hidden;opacity:0;transition:opacity .28s ease;background:#07101c;pointer-events:none}
+.hero-video-layer.active{opacity:1}
+.hero-video-layer video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.hero-video-layer iframe{position:absolute;left:50%;top:50%;width:max(100%,177.78vh);height:max(100%,56.25vw);transform:translate(-50%,-50%);border:0;pointer-events:none}
+.hero-video-layer::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,10,18,.76) 0%,rgba(7,12,22,.55) 30%,rgba(10,13,20,.20) 60%,rgba(10,13,20,.06) 100%)}
+.hero-shade{z-index:1}
+
+/* Stronger silver / metallic frame language from the reference. */
+.hero,.panel,.media-card,.shot-card,.news-item,.source-panel,.silver-box,.modal-card,.admin-section,.stat-card,.head-stat,.map-editor-preview,.codebox,.selected-location-card,.map-legend-reference{
+  border-width:2px !important;
+  border-color:var(--metal-line) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(72,88,112,.22),0 14px 36px rgba(0,0,0,.20),0 0 0 1px rgba(128,145,170,.07) !important;
+}
+.thumb,.screens-mini button,.map-preview,.recent-card{border-color:rgba(213,222,237,.24)!important}
+
+@media (min-width:1281px){
+  .dashboard-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(370px,1.28fr);gap:16px}
+  .home-panel{min-height:455px}
+  .map-card{padding-bottom:16px}
+  .map-card .map-preview{height:382px;min-height:382px}
+}
+
+@media (max-width:1280px) and (min-width:921px){
+  .topbar{grid-template-columns:220px minmax(0,1fr) 270px auto;gap:12px}
+  .language-current{min-width:68px;padding:0 9px}
+}
+
+@media (max-width:920px){
+  .topbar{grid-template-columns:minmax(0,1fr) auto auto auto!important;gap:6px!important}
+  .language-picker{display:block;z-index:54}
+  .language-current{width:42px;min-width:42px;height:42px;padding:0;border-radius:12px}
+  .language-current #languageCode,.language-current .language-chevron{display:none}
+  .language-menu{position:fixed;right:14px;top:70px}
+  .hero-video-layer iframe{width:max(100%,177.78vh);height:max(100%,56.25vw)}
+}
+@media (max-width:560px){
+  .language-current{width:38px;min-width:38px;height:38px}
+  .language-current #languageFlag{font-size:17px}
+}

@@ -62,6 +62,11 @@
 
   function normalizeDraft(){
     draft.hero ||= []; draft.leaks ||= []; draft.screenshots ||= []; draft.news ||= [];
+    draft.hero.forEach(slide=>{
+      slide.mediaType ||= slide.video ? 'video' : 'image';
+      slide.duration = Math.max(2,Math.min(60,Number(slide.duration)||7));
+      slide.video ||= '';
+    });
     draft.map ||= {image:'assets/InteractiveMap/GTA6MAP.png', blips:[]};
     draft.map.image ||= 'assets/InteractiveMap/GTA6MAP.png';
     draft.map.logo ||= 'assets/logo/Leonidaloga.png';
@@ -81,7 +86,13 @@
     draft.map.communityMapping ||= {enabled:true,version:1,excludedIds:[]};
     draft.map.communityMapping.enabled = draft.map.communityMapping.enabled !== false;
     draft.map.communityMapping.excludedIds = Array.isArray(draft.map.communityMapping.excludedIds) ? draft.map.communityMapping.excludedIds : [];
-    draft.settings ||= {siteName:'SIXWORLD',searchPlaceholder:'Search...',accent:'#ff4fa3',accent2:'#42e6ee'};
+    draft.settings ||= {};
+    draft.settings.siteName ||= 'SIXWORLD';
+    draft.settings.searchPlaceholder ||= 'Search...';
+    draft.settings.accent ||= '#ff4fa3';
+    draft.settings.accent2 ||= '#42e6ee';
+    draft.settings.backgroundImage ||= 'assets/site-background.png';
+    draft.settings.defaultLanguage ||= 'en';
     draft.feeds ||= {};
     draft.feeds.enabled = draft.feeds.enabled !== false;
     draft.feeds.subreddits = Array.isArray(draft.feeds.subreddits) && draft.feeds.subreddits.length
@@ -266,7 +277,7 @@
         ${stat(draft.screenshots.length,'SCREENSHOTS')}
         ${stat(draft.map.blips.length,'MAP BLIPS')}
       </div>
-      <section class="admin-section"><h3>Content Control Center</h3><p class="inline-note">Verwalte Homepage, Videos, Screenshots, News und die interaktive Map. In Cloudflare/D1 Mode werden die Daten zentral gespeichert, im lokalen Preview direkt im Browser.</p><div class="inline-actions"><button class="ghost-btn" id="dashGoHero">EDIT HERO</button><button class="ghost-btn" id="dashGoMap">EDIT MAP</button><button class="ghost-btn" id="dashGoNews">EDIT NEWS</button></div></section>
+      <section class="admin-section"><h3>Content Control Center</h3><p class="inline-note">Manage the homepage, videos, screenshots, news and interactive map. In Cloudflare/D1 mode the data is stored centrally; local preview data is stored in the browser.</p><div class="inline-actions"><button class="ghost-btn" id="dashGoHero">EDIT HERO</button><button class="ghost-btn" id="dashGoMap">EDIT MAP</button><button class="ghost-btn" id="dashGoNews">EDIT NEWS</button></div></section>
       <section class="admin-section"><h3>Current Admin Access</h3><div class="codebox">Hidden trigger text: <b>${window.SIXWORLD.escapeHtml(draft.access.secretText)}</b><br>Visible page: <b>${window.SIXWORLD.escapeHtml(draft.access.secretPage)}</b><br>Local demo login: <b>${window.SIXWORLD.escapeHtml(draft.access.demoUser)}</b> / <b>${window.SIXWORLD.escapeHtml(draft.access.demoPass)}</b></div></section>`;
     $('#dashGoHero').onclick=()=>setTab('hero');
     $('#dashGoMap').onclick=()=>setTab('map');
@@ -290,12 +301,12 @@
 
     $('#adminContent').innerHTML=`
       <section class="admin-section">
-        <div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Klicke auf einen Eintrag oder auf <b>EDIT</b>, um vorhandene Inhalte zu bearbeiten.</p></div></div>
+        <div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Click an entry or <b>EDIT</b> to edit existing content.</p></div></div>
         <div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div>
       </section>
       <section class="admin-section editor-section">
         <h3>${editId!=null?'Edit Selected':'Create New'}</h3>
-        ${editId!=null?'<div class="editing-badge">EDIT MODE · vorhandener Inhalt</div>':''}
+        ${editId!=null?'<div class="editing-badge">EDIT MODE · EXISTING CONTENT</div>':''}
         <div class="admin-form">${formHtml}</div>
         <div class="inline-actions">
           <button type="button" class="solid-btn" id="saveEntity" data-action="save-entity" data-entity-key="${key}">${editId!=null?'UPDATE CONTENT':'ADD NEW'}</button>
@@ -309,9 +320,12 @@
       key:'hero', title:'Hero Slides', list:draft.hero, imgKey:'image', subtitle:x=>x.description,
       fields:[
         {name:'eyebrow',label:'EYEBROW / TITLE',default:'WELCOME TO'},
+        {name:'mediaType',label:'SLIDE MEDIA TYPE',type:'select',options:['image','video'],default:'image'},
+        {name:'duration',label:'SLIDE DURATION (SECONDS)',type:'number',default:'7'},
         {name:'cta',label:'BUTTON LABEL',default:'EXPLORE NOW'},
         {name:'href',label:'BUTTON LINK',default:'#news'},
-        {name:'image',label:'IMAGE PATH OR URL',default:'assets/gta-6-trailer-2.jpg',full:true},
+        {name:'image',label:'POSTER / BACKGROUND IMAGE PATH OR URL',default:'assets/gta-6-trailer-2.jpg',full:true},
+        {name:'video',label:'VIDEO URL (STREAMABLE / YOUTUBE / VIMEO / MP4 / WEBM / EMBED URL)',default:'',full:true},
         {name:'description',label:'DESCRIPTION',type:'textarea',full:true}
       ]
     });
@@ -356,7 +370,7 @@
     });
     const section = document.createElement('section');
     section.className='admin-section';
-    section.innerHTML = `<h3>Live Feed Import</h3><p class="inline-note">Importiere aktuelle Items aus Reddit und X direkt in deine manuelle News-Liste.</p><div class="inline-actions"><button class="solid-btn" id="importFeedsBtn">IMPORT LIVE FEEDS</button></div>`;
+    section.innerHTML = `<h3>Live Feed Import</h3><p class="inline-note">Import current items from Reddit and X directly into your manual news list.</p><div class="inline-actions"><button class="solid-btn" id="importFeedsBtn">IMPORT LIVE FEEDS</button></div>`;
     $('#adminContent').appendChild(section);
     $('#importFeedsBtn').onclick = async ()=>{
       const subreddits = Array.isArray(draft.feeds?.subreddits) && draft.feeds.subreddits.length
@@ -385,11 +399,11 @@
     $('#adminContent').innerHTML=`
       <section class="admin-section">
         <h3>Map Setup</h3>
-        <p class="inline-note">Zoome mit Mausrad oder + / − in die Map. Ziehe die Map zum Verschieben. Ein kurzer Klick auf eine freie Stelle setzt eine neue Location.</p>
+        <p class="inline-note">Zoom with the mouse wheel or + / −. Drag the map to move it. A short click on an empty position creates a new location.</p>
         <div class="community-map-import">
           <div>
             <b>GTA VI MAPPING COMMUNITY LOCATIONS</b>
-            <small>Ca. 60 ungefähre Districts, Landmarks, Shops, Safehouses, Aktivitäten, Transport- und Secret-Punkte. Alle bleiben vollständig editierbar.</small>
+            <small>Around 60 approximate districts, landmarks, shops, safehouses, activities, transport and secret locations. Every imported location remains fully editable.</small>
           </div>
           <div class="inline-actions">
             <button class="solid-btn" id="importCommunityMap">IMPORT / RESTORE</button>
@@ -417,7 +431,7 @@
               <div class="admin-map-zoom-label" id="adminMapZoomLabel">100%</div>
             </div>
             <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW LOCATION</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
-            <p class="inline-note admin-map-help">Marker und Icons liegen direkt auf der Map und skalieren beim Zoomen proportional mit. So bleiben sie exakt an ihrer Position.</p>
+            <p class="inline-note admin-map-help">Markers and icons are anchored directly to the map and scale proportionally while zooming, keeping their exact positions.</p>
             <div class="blip-list">${blips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
           </div>
           <div class="admin-map-fields">
@@ -581,15 +595,17 @@
         <div class="admin-field"><label>SEARCH PLACEHOLDER</label><input id="setSearch" value="${window.SIXWORLD.escapeHtml(s.searchPlaceholder||'Search...')}"></div>
         <div class="admin-field"><label>PRIMARY ACCENT</label><input id="setAccent" type="color" value="${window.SIXWORLD.escapeHtml(s.accent||'#ff4fa3')}"></div>
         <div class="admin-field"><label>SECONDARY ACCENT</label><input id="setAccent2" type="color" value="${window.SIXWORLD.escapeHtml(s.accent2||'#42e6ee')}"></div>
-      </div></section>
+        <div class="admin-field full"><label>WEBSITE BACKGROUND IMAGE PATH / URL</label><input id="setBackground" value="${window.SIXWORLD.escapeHtml(s.backgroundImage||'assets/site-background.png')}"></div>
+        <div class="admin-field"><label>DEFAULT PUBLIC LANGUAGE</label><select id="setDefaultLanguage"><option value="en" ${(s.defaultLanguage||'en')==='en'?'selected':''}>English</option><option value="de" ${s.defaultLanguage==='de'?'selected':''}>Deutsch</option></select></div>
+      </div><div class="codebox" style="margin-top:16px">The background can use an asset path such as <b>assets/site-background.png</b> or a direct image URL. The public language switch in the header always lets visitors choose English or German.</div></section>
       <section class="admin-section"><h3>Feed Configuration</h3><div class="admin-form">
         <div class="admin-field"><label>LIVE FEEDS ENABLED</label><select id="feedEnabled"><option value="true" ${(f.enabled!==false)?'selected':''}>true</option><option value="false" ${(f.enabled===false)?'selected':''}>false</option></select></div>
         <div class="admin-field full"><label>REDDIT FEEDS (one per line or comma-separated)</label><textarea id="feedSubreddits" rows="4">${window.SIXWORLD.escapeHtml((Array.isArray(f.subreddits)&&f.subreddits.length?f.subreddits:['GTA6unmoderated','GTA6_NEW']).join('\n'))}</textarea></div>
         <div class="admin-field"><label>X USERNAME</label><input id="feedXUser" value="${window.SIXWORLD.escapeHtml(f.xUser||'RockstarGames')}"></div>
         <div class="admin-field"><label>MAX LIVE ITEMS</label><input id="feedMaxItems" type="number" min="1" max="30" value="${window.SIXWORLD.escapeHtml(String(f.maxItems||10))}"></div>
-      </div><div class="codebox" style="margin-top:16px"><b>Active Reddit feeds:</b> r/GTA6unmoderated and r/GTA6_NEW. Neue Posts werden automatisch auf der News-Seite geladen. Du kannst hier später weitere Subreddits ergänzen oder entfernen. Der Serverless-Feed wird für wenige Minuten gecacht, damit Reddit nicht bei jedem Besucher neu angefragt wird.</div></section>`;
-    ['setName','setSearch','setAccent','setAccent2'].forEach(id=>$('#'+id).oninput=()=>{
-      draft.settings={siteName:$('#setName').value,searchPlaceholder:$('#setSearch').value,accent:$('#setAccent').value,accent2:$('#setAccent2').value};
+      </div><div class="codebox" style="margin-top:16px"><b>Active Reddit feeds:</b> r/GTA6unmoderated and r/GTA6_NEW. New posts are loaded automatically on the News page. Add or remove subreddits here at any time. The serverless feed is cached briefly to avoid unnecessary Reddit requests.</div></section>`;
+    ['setName','setSearch','setAccent','setAccent2','setBackground','setDefaultLanguage'].forEach(id=>$('#'+id).oninput=()=>{
+      draft.settings={...draft.settings,siteName:$('#setName').value,searchPlaceholder:$('#setSearch').value,accent:$('#setAccent').value,accent2:$('#setAccent2').value,backgroundImage:$('#setBackground').value,defaultLanguage:$('#setDefaultLanguage').value};
     });
     ['feedEnabled','feedSubreddits','feedXUser','feedMaxItems'].forEach(id=>$('#'+id).oninput=()=>{
       const subreddits=$('#feedSubreddits').value.split(/[\n,]+/).map(x=>x.trim().replace(/^r\//i,'')).filter(Boolean);
@@ -606,7 +622,7 @@
         <div class="admin-field"><label>LOCAL DEMO USERNAME</label><input id="accUser" value="${window.SIXWORLD.escapeHtml(a.demoUser||'admin')}"></div>
         <div class="admin-field"><label>LOCAL DEMO PASSWORD</label><input id="accPass" value="${window.SIXWORLD.escapeHtml(a.demoPass||'sixworld')}"></div>
       </div></section>
-      <section class="admin-section"><h3>How It Works</h3><div class="access-box"><div class="codebox">Der kleine geheime Trigger erscheint nur auf der Map-Seite. Beim Klick öffnet sich das Login-Fenster. Im lokalen Preview nutzt die Seite die hier eingestellten Demo-Zugangsdaten. Nach Deployment kann der serverseitige Login über die enthaltenen API-Endpunkte übernommen werden.</div></div></section>`;
+      <section class="admin-section"><h3>How It Works</h3><div class="access-box"><div class="codebox">The small hidden trigger appears only on the Map page. Clicking it opens the login window. Local preview uses the demo credentials configured above; after deployment the included server-side API handles authentication.</div></div></section>`;
     ['accText','accPage','accUser','accPass'].forEach(id=>$('#'+id).oninput=()=>{
       draft.access={secretText:$('#accText').value,secretPage:$('#accPage').value,demoUser:$('#accUser').value,demoPass:$('#accPass').value};
     });
