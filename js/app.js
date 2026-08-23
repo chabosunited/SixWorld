@@ -178,7 +178,7 @@
     $('#languageMenu')?.classList.remove('open');
     $('#languageButton')?.setAttribute('aria-expanded','false');
     if(rerender && app.content){
-      renderHome();renderMap();setHero(app.heroIndex||0,false,true);setTimeout(()=>hydrateVideoViewCounts(document),20);
+      renderHome();renderMap();setHero(app.heroIndex||0,false,true);setTimeout(()=>{hydrateVideoViewCounts(document);hydrateScreenshotViewCounts(document);},20);
       if(app.community.active){const thread=$('#'+app.community.active.threadId);if(thread)paintCommunityThread(thread);}
       const active=app.community.active;
       if(active?.type==='video'&&$('#videoModalViews'))fetchMediaViews('video',active.item).then(v=>$('#videoModalViews').textContent=formatViews(v.views));
@@ -235,6 +235,20 @@
       $$(`[data-video-view-id="${CSS.escape(String(item.id))}"]`,scope).forEach(el=>el.textContent=formatViews(data.views));
     }));
   }
+  async function hydrateScreenshotViewCounts(scope=document){
+    const elements=$$('[data-screenshot-view-id]',scope);
+    const unique=new Map();
+    elements.forEach(el=>{
+      const id=el.dataset.screenshotViewId;
+      const item=(app.content.screenshots||[]).find(x=>String(x.id)===String(id));
+      if(item)unique.set(String(id),item);
+    });
+    await Promise.all([...unique.values()].map(async item=>{
+      const data=await fetchMediaViews('screenshot',item);
+      $$(`[data-screenshot-view-id="${CSS.escape(String(item.id))}"]`,scope).forEach(el=>el.textContent=formatViews(data.views));
+    }));
+  }
+
   function communityDate(value){
     const d=new Date(String(value||'').replace(' ','T')+'Z');
     if(Number.isNaN(d.getTime()))return value||'';
@@ -449,7 +463,7 @@
 
     const shots=(app.content.screenshots||[]).slice(0,6);
     $('#homeScreens').innerHTML = homePanelHeader('screens','home.screenshots','#screenshots',true) +
-      `<div class="screens-mini">${shots.map(s=>`<button data-shot-id="${escapeHtml(s.id)}"><img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.title)}"></button>`).join('')}</div>
+      `<div class="screens-mini">${shots.map(s=>`<button data-shot-id="${escapeHtml(s.id)}"><img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.title)}"><span class="home-shot-views" data-screenshot-view-id="${escapeHtml(s.id)}">— ${escapeHtml(t('community.views'))}</span></button>`).join('')}</div>
        <div class="carousel-pips"><i></i><i></i><i></i><i></i><i></i></div>`;
 
     const news=mergedNewsList().slice(0,5);
@@ -459,16 +473,16 @@
         <div class="mini-copy"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.date)}</small></div>
       </a>`).join('');
 
+    const homeMapBlips=(app.content.map?.blips||[]).filter(b=>!b.hidden).slice(0,10);
     $('#homeMap').innerHTML = homePanelHeader('map','home.map','#map',true) +
-      `<a href="#map" class="map-preview" aria-label="Interactive Map">
-        <img src="${escapeHtml(app.content.map?.image||'assets/InteractiveMap/GTA6MAP.png')}" alt="Map">
+      `<a href="#map" class="map-preview home-live-map" aria-label="Interactive Map">
+        <div class="home-map-stage">
+          <img src="${escapeHtml(app.content.map?.image||'assets/InteractiveMap/GTA6MAP.png')}" alt="Map">
+          <div class="home-map-blips">${homeMapBlips.map(b=>`<span class="home-map-blip ${mapClass(b.category)}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%">${mapIconSvg(b.category,'home-blip-icon')}</span>`).join('')}</div>
+        </div>
         <div class="map-preview-overlay"></div>
-        <i class="preview-marker one">🌴</i>
-        <i class="preview-marker two">▦</i>
-        <i class="preview-marker cyan three">⌂</i>
-        <i class="preview-marker four">💎</i>
-        <div class="map-preview-ui"><button>+</button><button>−</button><button>⌖</button></div>
-        <span class="map-preview-label">VICE CITY & BEYOND</span>
+        <div class="map-preview-ui"><span>+</span><span>−</span><span>⌖</span></div>
+        <span class="map-preview-label">${escapeHtml(app.content.map?.introLabel||'VICE CITY & BEYOND')}</span>
       </a>`;
   }
 
@@ -488,8 +502,9 @@
     $('#screensGrid').innerHTML = arr.map(s=>`
       <button class="shot-card" data-shot-id="${escapeHtml(s.id)}">
         <img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.title)}">
-        <span class="shot-info"><b>${escapeHtml(s.title)}</b><small>${escapeHtml(s.source||'')}</small></span>
+        <span class="shot-info"><span><b>${escapeHtml(s.title)}</b><small>${escapeHtml(s.source||'')}</small></span><small class="shot-view-count" data-screenshot-view-id="${escapeHtml(s.id)}">— ${escapeHtml(t('community.views'))}</small></span>
       </button>`).join('');
+    setTimeout(()=>hydrateScreenshotViewCounts(document),25);
   }
 
   function renderNews(){
@@ -630,7 +645,7 @@
     renderNews();
     renderMap();
     applyLanguage(app.language,false);
-    setTimeout(()=>hydrateVideoViewCounts(document),25);
+    setTimeout(()=>{hydrateVideoViewCounts(document);hydrateScreenshotViewCounts(document);},25);
   }
 
   function openModal(id){ const m=$('#'+id); m.classList.add('open'); m.setAttribute('aria-hidden','false'); }
@@ -677,6 +692,7 @@
     loadComments('screenshot',item,'screenshotComments');
     const view=await fetchMediaViews('screenshot',item,{force:true});
     if($('#lightboxViews'))$('#lightboxViews').textContent=formatViews(view.views);
+    hydrateScreenshotViewCounts();
   }
 
   function setMobileMenu(open){
@@ -695,10 +711,6 @@
     e.stopPropagation();
     setMobileMenu(true);
     setTimeout(()=>$('#globalSearch')?.focus(),80);
-  });
-  $('#mobileProfileBtn')?.addEventListener('click',e=>{
-    e.stopPropagation();
-    toast(t('profile.notice'));
   });
   $('#mobileFilterToggle')?.addEventListener('click',()=>{
     $('.map-filter-panel')?.classList.toggle('expanded');
@@ -724,7 +736,7 @@
     $$('.nav a').forEach(a=>a.classList.toggle('active', a.dataset.route===page));
     setMobileMenu(false);
     window.scrollTo({top:0,behavior:'instant'});
-    if(page==='home'||page==='leaks') setTimeout(()=>hydrateVideoViewCounts(document),20);
+    if(page==='home'||page==='leaks'||page==='screenshots') setTimeout(()=>{hydrateVideoViewCounts(document);hydrateScreenshotViewCounts(document);},20);
   }
   addEventListener('hashchange', route);
 
@@ -803,7 +815,6 @@
     });
   });
 
-  $('#profileBtn').addEventListener('click',()=>toast(t('profile.notice')));
   $('#syncNewsBtn').addEventListener('click',()=>refreshFeeds({silent:false}));
 
   async function loadSiteStats(){

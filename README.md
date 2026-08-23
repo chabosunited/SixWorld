@@ -159,3 +159,15 @@ The required tables are created automatically by the Cloudflare Functions on fir
 ```bash
 npx wrangler d1 execute sixworld-db --remote --file=migration_v19.sql
 ```
+
+
+## v20 — Ordering, Home Map & Persistent Views
+
+- Hero Slides, Videos/Leaks and Screenshots can be reordered by drag-and-drop in the Admin Panel.
+- The Home map now uses the actual saved map blips and the same category icons as the full Interactive Map.
+- Profile buttons were removed from desktop and mobile navigation.
+- Video and screenshot views are backed by D1 website views. For Streamable videos the highest successfully observed Streamable count is cached permanently in D1, so the visible count cannot fall back to zero when Streamable is temporarily unavailable.
+- Screenshot cards now also show their SIXWORLD view count.
+- The grain/noise overlay has been removed from the website background.
+
+Existing v19 D1 installs do not need a manual migration; the API attempts to add the new column automatically. `migration_v20.sql` is included for optional manual use.

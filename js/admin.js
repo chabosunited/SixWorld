@@ -8,6 +8,7 @@
   let selectedBlipId=null;
   let activeEntityConfig=null;
   let adminMapScale=1, adminMapX=0, adminMapY=0;
+  let reorderState={key:null,id:null};
 
 
   const adminMapIconPaths={
@@ -147,7 +148,12 @@
   function stat(n,l){ return `<div class="stat-card"><b>${n}</b><span>${l}</span></div>`; }
   function adminRow(img,title,sub,arr,id){
     const active = editIds[arr]!=null && String(editIds[arr])===String(id) ? ' editing' : '';
+    const reorderable=['hero','leaks','screens'].includes(arr);
+    const dragHandle=reorderable
+      ? `<button class="admin-drag-handle" draggable="true" data-drag-handle="${window.SIXWORLD.escapeHtml(id)}" data-array="${arr}" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</button>`
+      : '';
     return `<div class="admin-row${active}" data-edit="${id}" data-array="${arr}">
+      ${dragHandle}
       <img src="${img||'assets/logo/sixworldlogo.png'}" alt="">
       <div class="admin-row-copy"><b>${window.SIXWORLD.escapeHtml(title)}</b><small>${window.SIXWORLD.escapeHtml(sub||'')}</small></div>
       <div class="admin-row-actions">
@@ -235,6 +241,7 @@
       renderTab();
       return;
     }
+    if(e.target.closest('[data-drag-handle]')) return;
     const deleteBtn=e.target.closest('[data-delete]');
     if(deleteBtn){
       e.preventDefault(); e.stopPropagation();
@@ -259,6 +266,58 @@
       e.preventDefault();
       startEdit(row.dataset.array,row.dataset.edit);
     }
+  });
+
+  $('#adminContent').addEventListener('dragstart',e=>{
+    const handle=e.target.closest('[data-drag-handle]');
+    if(!handle) return;
+    const key=handle.dataset.array;
+    if(!['hero','leaks','screens'].includes(key)) return;
+    reorderState={key,id:String(handle.dataset.dragHandle)};
+    const row=handle.closest('.admin-row');
+    row?.classList.add('dragging-row');
+    try{
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',reorderState.id);
+      if(row)e.dataTransfer.setDragImage(row,30,20);
+    }catch(_){}
+  });
+
+  $('#adminContent').addEventListener('dragover',e=>{
+    if(!reorderState.key) return;
+    const row=e.target.closest(`.admin-row[data-array="${reorderState.key}"]`);
+    if(!row || String(row.dataset.edit)===String(reorderState.id)) return;
+    e.preventDefault();
+    $$('.admin-row.drop-before,.admin-row.drop-after','#adminContent').forEach(x=>x.classList.remove('drop-before','drop-after'));
+    const rect=row.getBoundingClientRect();
+    row.classList.add(e.clientY < rect.top + rect.height/2 ? 'drop-before' : 'drop-after');
+  });
+
+  $('#adminContent').addEventListener('drop',async e=>{
+    if(!reorderState.key) return;
+    const row=e.target.closest(`.admin-row[data-array="${reorderState.key}"]`);
+    if(!row) return;
+    e.preventDefault();
+    const key=reorderState.key;
+    const list=getEntityList(key);
+    if(!list) return;
+    const from=list.findIndex(x=>String(x.id)===String(reorderState.id));
+    let to=list.findIndex(x=>String(x.id)===String(row.dataset.edit));
+    if(from<0 || to<0 || from===to) return;
+    const rect=row.getBoundingClientRect();
+    const after=e.clientY >= rect.top + rect.height/2;
+    const [moved]=list.splice(from,1);
+    to=list.findIndex(x=>String(x.id)===String(row.dataset.edit));
+    list.splice(after?to+1:to,0,moved);
+    reorderState={key:null,id:null};
+    $$('.admin-row','#adminContent').forEach(x=>x.classList.remove('dragging-row','drop-before','drop-after'));
+    await saveDraft('Order updated & published.');
+    renderTab();
+  });
+
+  $('#adminContent').addEventListener('dragend',()=>{
+    reorderState={key:null,id:null};
+    $$('.admin-row','#adminContent').forEach(x=>x.classList.remove('dragging-row','drop-before','drop-after'));
   });
 
   function setTab(next){ tab=next; renderTab(); }
@@ -301,7 +360,7 @@
 
     $('#adminContent').innerHTML=`
       <section class="admin-section">
-        <div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Click an entry or <b>EDIT</b> to edit existing content.</p></div></div>
+        <div class="admin-section-heading"><div><h3>${title}</h3><p class="inline-note">Click an entry or <b>EDIT</b> to edit existing content.${['hero','leaks','screens'].includes(key)?' Use the ⋮⋮ handle to drag and change the order.':''}</p></div></div>
         <div class="admin-list">${list.map(x=>adminRow(x[imgKey],x.title||x.eyebrow||x.label,subtitle(x),key,x.id)).join('')}</div>
       </section>
       <section class="admin-section editor-section">

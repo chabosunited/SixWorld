@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS media_views (
   media_type TEXT NOT NULL,
   content_id TEXT NOT NULL,
   views INTEGER NOT NULL DEFAULT 0,
+  external_views INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(media_type,content_id)
 );
