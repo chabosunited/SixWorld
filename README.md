@@ -224,3 +224,28 @@ v24 moves the asset migration helper to shared scope while preserving:
 - v22 screenshot download button;
 - v21 mobile layout fixes;
 - v20 view counters / Home map / drag ordering.
+
+
+## v25 — Admin Map Category Filters
+
+The Interactive Map editor now has a dedicated Admin-only filter bar:
+
+- ALL
+- DISTRICTS
+- LANDMARKS
+- ACTIVITIES
+- SHOPS
+- SAFEHOUSES
+- SECRETS
+- TRANSPORT
+
+Only markers from the selected category are rendered in the Admin map preview and location list.
+The public Interactive Map is unaffected.
+
+Additional editor improvements:
+- category buttons show the number of markers in each category;
+- visible/total marker count is shown;
+- Admin markers are substantially smaller than before;
+- at high Admin zoom levels markers grow more slowly, so they no longer cover large portions of the map;
+- creating a new location while a category filter is active automatically uses that category;
+- changing a selected location's category automatically follows it into the new filter.

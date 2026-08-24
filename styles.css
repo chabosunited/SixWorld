@@ -1624,3 +1624,151 @@ body::after{display:none!important}
 .modal-caption-actions{display:flex;justify-content:flex-start;margin-top:14px}
 .screenshot-download-btn{min-width:150px;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
 @media (max-width:640px){.screenshot-download-btn{width:100%;justify-content:center}}
+
+
+/* ===== SIXWORLD v25: Admin Interactive Map category filtering ===== */
+.admin-map-filter-panel{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--silver-line);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(7,15,29,.92),rgba(5,12,23,.95));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.admin-map-filter-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:12px;
+}
+.admin-map-filter-head>div{min-width:0}
+.admin-map-filter-head b{
+  display:block;
+  color:#f3f6fb;
+  font:800 14px/1 var(--font-display);
+  letter-spacing:.05em;
+  margin-bottom:5px;
+}
+.admin-map-filter-head small{
+  display:block;
+  color:#8190a5;
+  font-size:11px;
+  line-height:1.5;
+}
+.admin-map-filter-count{
+  flex:none;
+  color:var(--cyan);
+  border:1px solid rgba(66,230,238,.18);
+  background:rgba(66,230,238,.055);
+  border-radius:999px;
+  padding:7px 10px;
+  font:800 10px/1 var(--font-display);
+  letter-spacing:.05em;
+}
+.admin-map-filter-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.admin-map-filter-chip{
+  height:38px;
+  padding:0 11px;
+  border-radius:9px;
+  border:1px solid rgba(220,228,241,.13);
+  background:rgba(255,255,255,.025);
+  color:#cbd4e1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  font:800 11px/1 var(--font-display);
+  letter-spacing:.025em;
+  transition:.16s ease;
+}
+.admin-map-filter-chip:hover{
+  border-color:rgba(66,230,238,.27);
+  background:rgba(66,230,238,.055);
+  color:#fff;
+}
+.admin-map-filter-chip.active{
+  color:#fff;
+  border-color:rgba(255,79,163,.48);
+  background:linear-gradient(180deg,rgba(255,79,163,.18),rgba(255,79,163,.07));
+  box-shadow:0 0 0 1px rgba(255,79,163,.08),0 0 18px rgba(255,79,163,.08);
+}
+.admin-map-filter-chip .map-custom-icon{
+  width:15px!important;
+  height:15px!important;
+  color:currentColor;
+  flex:none;
+}
+.admin-filter-all-icon{
+  width:15px;
+  height:15px;
+  display:grid;
+  place-items:center;
+  color:currentColor;
+  font-size:15px;
+}
+.admin-map-filter-chip em{
+  min-width:21px;
+  height:19px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:rgba(255,255,255,.065);
+  color:#99a8bc;
+  font-style:normal;
+  font:700 9px/1 Arial,sans-serif;
+}
+.admin-map-filter-chip.active em{
+  color:#ffd9ed;
+  background:rgba(255,79,163,.13);
+}
+
+/* Admin markers are intentionally smaller than the public-map markers.
+   The JS compensation makes them grow more slowly at high Admin zoom levels. */
+.map-editor-preview .edit-blip{
+  width:22px!important;
+  min-width:22px!important;
+  height:22px!important;
+  padding:0!important;
+  border-width:1.25px!important;
+  box-shadow:0 3px 9px rgba(0,0,0,.34),0 0 0 2px rgba(255,255,255,.025)!important;
+  transform:translate(-50%,-50%) scale(var(--admin-blip-compensation,1))!important;
+}
+.map-editor-preview .edit-blip .map-custom-icon{
+  width:11px!important;
+  height:11px!important;
+}
+.map-editor-preview .edit-blip.selected{
+  box-shadow:0 0 0 3px rgba(255,255,255,.18),0 0 0 6px rgba(255,79,163,.12),0 5px 12px rgba(0,0,0,.38)!important;
+}
+.blip-list .blip-pill{
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+}
+.blip-list .blip-pill .map-custom-icon{
+  width:14px;
+  height:14px;
+  color:#fff;
+}
+.admin-map-empty-filter{
+  padding:18px;
+  border:1px dashed rgba(220,228,241,.13);
+  border-radius:11px;
+  color:#7e8da2;
+  text-align:center;
+  font-size:12px;
+}
+
+@media(max-width:920px){
+  .admin-map-filter-head{align-items:flex-start;flex-direction:column;gap:8px}
+  .admin-map-filter-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}
+  .admin-map-filter-chip{flex:none}
+}

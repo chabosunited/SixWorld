@@ -9,6 +9,7 @@
   let activeEntityConfig=null;
   let adminMapScale=1, adminMapX=0, adminMapY=0;
   let reorderState={key:null,id:null};
+  let adminMapFilter='all';
 
 
   const adminMapIconPaths={
@@ -499,10 +500,17 @@
 
   function renderMap(){
     const blips=draft.map.blips||[];
-    const categories=(draft.map.categories||[]).map(x=>x.key);
-    const selected=blips.find(x=>String(x.id)===String(selectedBlipId))||blips[0]||null;
-    if(selected&&!selectedBlipId) selectedBlipId=selected.id;
+    const categoryObjects=(draft.map.categories||[]);
+    const categories=categoryObjects.map(x=>x.key);
+    if(adminMapFilter!=='all' && !categories.includes(adminMapFilter)) adminMapFilter='all';
+    const visibleBlips=adminMapFilter==='all' ? blips : blips.filter(b=>String(b.category)===String(adminMapFilter));
+    let selected=visibleBlips.find(x=>String(x.id)===String(selectedBlipId))||visibleBlips[0]||null;
+    selectedBlipId=selected?.id||null;
     const tagValue=Array.isArray(selected?.tags)?selected.tags.join(', '):(selected?.tags||'');
+    const adminFilterItems=[
+      {key:'all',label:'ALL',count:blips.length},
+      ...categoryObjects.map(c=>({key:c.key,label:String(c.label||c.key).toUpperCase(),count:blips.filter(b=>String(b.category)===String(c.key)).length}))
+    ];
     $('#adminContent').innerHTML=`
       <section class="admin-section">
         <h3>Map Setup</h3>
@@ -523,12 +531,29 @@
           <div class="admin-field"><label>MAP INTRO LABEL</label><input id="mapIntroInput" value="${window.SIXWORLD.escapeHtml(draft.map.introLabel||'VICE CITY & BEYOND')}"></div>
           <div class="admin-field"><label>LAST UPDATED</label><input id="mapUpdatedInput" value="${window.SIXWORLD.escapeHtml(draft.map.updatedDate||'May 12, 2025')}"></div>
         </div>
-        <div class="map-editor-layout" style="margin-top:18px">
+        <div class="admin-map-filter-panel">
+          <div class="admin-map-filter-head">
+            <div>
+              <b>BLIP FILTER</b>
+              <small>Show only one category while positioning markers. This filter only changes the Admin preview — it does not delete or hide locations on the public map.</small>
+            </div>
+            <span class="admin-map-filter-count">${visibleBlips.length} / ${blips.length} VISIBLE</span>
+          </div>
+          <div class="admin-map-filter-chips">
+            ${adminFilterItems.map(f=>`
+              <button type="button" class="admin-map-filter-chip ${adminMapFilter===f.key?'active':''}" data-admin-map-filter="${window.SIXWORLD.escapeHtml(f.key)}">
+                ${f.key==='all'?'<span class="admin-filter-all-icon">◎</span>':adminMapIconSvg(f.key)}
+                <span>${window.SIXWORLD.escapeHtml(f.label)}</span>
+                <em>${f.count}</em>
+              </button>`).join('')}
+          </div>
+        </div>
+        <div class="map-editor-layout" style="margin-top:14px">
           <div>
             <div class="map-editor-preview" id="mapEditPreview">
               <div class="admin-map-stage" id="adminMapStage">
                 <img src="${window.SIXWORLD.escapeHtml(draft.map.image)}" alt="" draggable="false">
-                <div class="admin-map-blips">${blips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${adminMapIconSvg(b.category)}</button>`).join('')}</div>
+                <div class="admin-map-blips">${visibleBlips.map(b=>`<button class="edit-blip ${b.category||'landmark'} ${String(selected?.id)===String(b.id)?'selected':''}" data-id="${window.SIXWORLD.escapeHtml(b.id)}" style="left:${b.x}%;top:${b.y}%">${adminMapIconSvg(b.category)}</button>`).join('')}</div>
               </div>
               <div class="admin-map-toolbar" aria-label="Admin map tools">
                 <button id="adminZoomIn" type="button" title="Zoom in">+</button>
@@ -539,7 +564,7 @@
             </div>
             <div class="inline-actions"><button class="solid-btn" id="newBlip">NEW LOCATION</button><button class="ghost-btn" id="deleteBlip">DELETE SELECTED</button><button class="ghost-btn" id="exportMapJson">COPY MAP JSON</button></div>
             <p class="inline-note admin-map-help">Markers and icons are anchored directly to the map and scale proportionally while zooming, keeping their exact positions.</p>
-            <div class="blip-list">${blips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${window.SIXWORLD.escapeHtml(b.symbol||'•')}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join('')}</div>
+            <div class="blip-list">${visibleBlips.length?visibleBlips.map(b=>`<div class="blip-item ${String(selected?.id)===String(b.id)?'active':''}" data-pick-blip="${window.SIXWORLD.escapeHtml(b.id)}"><span class="blip-pill">${adminMapIconSvg(b.category)}</span><div><b>${window.SIXWORLD.escapeHtml(b.label||'Untitled')}</b><div class="inline-note">${window.SIXWORLD.escapeHtml(b.category||'landmark')} · ${b.x}% / ${b.y}%</div></div></div>`).join(''):`<div class="admin-map-empty-filter">No ${window.SIXWORLD.escapeHtml(adminMapFilter.toUpperCase())} markers yet.</div>`}</div>
           </div>
           <div class="admin-map-fields">
             <div class="admin-field full"><label>LOCATION NAME</label><input id="bLabel" value="${window.SIXWORLD.escapeHtml(selected?.label||'')}"></div>
@@ -573,6 +598,10 @@
     function applyAdminMap(){
       if(!stage)return;
       stage.style.transform=`translate(calc(-50% + ${adminMapX}px),calc(-50% + ${adminMapY}px)) scale(${adminMapScale})`;
+      // Keep Admin markers readable without letting them become enormous at 250–400% zoom.
+      // They still grow with the map, but at a slower visual rate.
+      const compensation=1/Math.sqrt(Math.max(.75,adminMapScale));
+      $$('.edit-blip',stage).forEach(el=>el.style.setProperty('--admin-blip-compensation',compensation.toFixed(4)));
       const label=$('#adminMapZoomLabel'); if(label)label.textContent=Math.round(adminMapScale*100)+'%';
     }
     function setAdminZoom(next){adminMapScale=clamp(next,.75,4);applyAdminMap();}
@@ -592,10 +621,22 @@
     preview?.addEventListener('wheel',e=>{e.preventDefault();setAdminZoom(adminMapScale+(e.deltaY<0?.15:-.15))},{passive:false});
     preview?.querySelector('img')?.addEventListener('dragstart',e=>e.preventDefault());
 
+    $$('[data-admin-map-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+      adminMapFilter=btn.dataset.adminMapFilter||'all';
+      const first=adminMapFilter==='all'
+        ? draft.map.blips[0]
+        : draft.map.blips.find(b=>String(b.category)===String(adminMapFilter));
+      selectedBlipId=first?.id||null;
+      renderMap();
+    }));
+
     const currentBlip=()=>draft.map.blips.find(x=>String(x.id)===String(selectedBlipId))||null;
     function syncCurrentBlip(){
       const b=currentBlip();if(!b)return;
-      b.label=$('#bLabel').value;b.category=$('#bCat').value;b.symbol=$('#bSymbol').value;b.image=$('#bImage').value;
+      b.label=$('#bLabel').value;
+      const previousCategory=b.category;
+      b.category=$('#bCat').value;b.symbol=$('#bSymbol').value;b.image=$('#bImage').value;
+      if(adminMapFilter!=='all' && previousCategory!==b.category) adminMapFilter=b.category;
       b.region=$('#bRegion').value;b.district=$('#bDistrict').value;b.poiCount=+$('#bPoiCount').value||0;b.discovered=$('#bDiscovered').value;
       b.tags=$('#bTags').value.split(',').map(x=>x.trim()).filter(Boolean);b.description=$('#bDesc').value;b.link=$('#bLink').value;
       b.x=+$('#bX').value;b.y=+$('#bY').value;b.featured=$('#bFeatured').value==='true';
@@ -603,7 +644,11 @@
       const el=$(`.edit-blip[data-id="${CSS.escape(String(b.id))}"]`);if(el){el.innerHTML=adminMapIconSvg(b.category);el.style.left=b.x+'%';el.style.top=b.y+'%';el.className=`edit-blip ${b.category} selected`}
       const row=$(`.blip-item[data-pick-blip="${CSS.escape(String(b.id))}"]`);if(row){row.querySelector('b').textContent=b.label;const n=row.querySelector('.inline-note');if(n)n.textContent=`${b.category} · ${b.x}% / ${b.y}%`;}
     }
-    ['bLabel','bCat','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured','bStatus','bSource'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
+    ['bLabel','bSymbol','bImage','bRegion','bDistrict','bPoiCount','bDiscovered','bTags','bDesc','bLink','bX','bY','bFeatured','bStatus','bSource'].forEach(id=>$('#'+id)?.addEventListener('input',syncCurrentBlip));
+    $('#bCat')?.addEventListener('change',()=>{
+      syncCurrentBlip();
+      renderMap();
+    });
     $$('.blip-item').forEach(item=>item.onclick=()=>{selectedBlipId=item.dataset.pickBlip;renderMap()});
 
     $$('.edit-blip').forEach(btn=>{
@@ -638,11 +683,16 @@
       if(moved)return;
       const r=stage.getBoundingClientRect();
       const x=+clamp((e.clientX-r.left)/r.width*100,0,100).toFixed(1),y=+clamp((e.clientY-r.top)/r.height*100,0,100).toFixed(1);
-      const b={id:uid('loc'),x,y,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};
+      const newCategory=adminMapFilter==='all'?'landmark':adminMapFilter;
+      const b={id:uid('loc'),x,y,label:'New Location',category:newCategory,symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:[newCategory.toUpperCase()],description:'',link:'#map',featured:false};
       draft.map.blips.push(b);selectedBlipId=b.id;renderMap();
     });
 
-    $('#newBlip').onclick=()=>{const b={id:uid('loc'),x:50,y:50,label:'New Location',category:'landmark',symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:['LANDMARK'],description:'',link:'#map',featured:false};draft.map.blips.push(b);selectedBlipId=b.id;renderMap()};
+    $('#newBlip').onclick=()=>{
+      const newCategory=adminMapFilter==='all'?'landmark':adminMapFilter;
+      const b={id:uid('loc'),x:50,y:50,label:'New Location',category:newCategory,symbol:'★',image:'assets/nighttimepink.webp',region:'Leonida',district:'',poiCount:0,discovered:'',tags:[newCategory.toUpperCase()],description:'',link:'#map',featured:false};
+      draft.map.blips.push(b);selectedBlipId=b.id;renderMap();
+    };
     $('#importCommunityMap')?.addEventListener('click',async()=>{
       try{
         const r=await fetch('data/community-map-locations.json',{cache:'no-store'});
@@ -664,6 +714,7 @@
           draft.map.blips.push({...loc});
           existingIds.add(id); if(label) existingLabels.add(label); added++;
         }
+        adminMapFilter='all';
         selectedBlipId=draft.map.blips.find(x=>x.sourceSet==='stateofleonida-community')?.id||draft.map.blips[0]?.id||null;
         await saveDraft(`Community map imported · ${added} new locations published.`);
         renderMap();
