@@ -8,7 +8,7 @@ Compact desktop map update.
 - Smaller Recently Discovered strip
 - Map remains draggable and zoomable inside the shorter viewport
 
-# SIXWORLD v11
+# SIXWORLD v11-
 
 ## Änderungen in v11
 
