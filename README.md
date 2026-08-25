@@ -8,7 +8,7 @@ Compact desktop map update.
 - Smaller Recently Discovered strip
 - Map remains draggable and zoomable inside the shorter viewport
 
-# SIXWORLD v11-
+# SIXWORLD v11
 
 ## Änderungen in v11
 
@@ -249,3 +249,21 @@ Additional editor improvements:
 - at high Admin zoom levels markers grow more slowly, so they no longer cover large portions of the map;
 - creating a new location while a category filter is active automatically uses that category;
 - changing a selected location's category automatically follows it into the new filter.
+
+
+## v26 — Complete Home Map Blip Layer
+
+Fixed the Interactive Map preview on the Home page.
+
+Previously the Home page deliberately rendered only the first 10 map locations:
+
+`slice(0,10)`
+
+The full Map page rendered the complete saved blip list, which is why the two views did not match.
+
+v26:
+- renders every non-hidden saved blip on the Home map;
+- uses the same district/landmark/activity/shop/safehouse/secret/transport icons and colors;
+- keeps the same X/Y coordinates as the full Interactive Map;
+- uses smaller proportional markers in the compact Home preview to reduce overlap;
+- preserves the full Map page and Admin Map behavior unchanged.

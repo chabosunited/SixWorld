@@ -8,4 +8,4 @@ database_name = "sixworld-db"
 database_id = "0c47bb68-d845-4c8b-bcb3-08a08e4a6fdc"
 
 [vars]
-ADMIN_USERNAME = "administrator"
+ADMIN_USERNAME = "admin"

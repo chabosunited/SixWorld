@@ -520,12 +520,12 @@
         <div class="mini-copy"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.date)}</small></div>
       </a>`).join('');
 
-    const homeMapBlips=(app.content.map?.blips||[]).filter(b=>!b.hidden).slice(0,10);
+    const homeMapBlips=(app.content.map?.blips||[]).filter(b=>!b.hidden);
     $('#homeMap').innerHTML = homePanelHeader('map','home.map','#map',true) +
       `<a href="#map" class="map-preview home-live-map" aria-label="Interactive Map">
         <div class="home-map-stage">
           <img src="${escapeHtml(app.content.map?.image||'assets/InteractiveMap/GTA6MAP.png')}" alt="Map">
-          <div class="home-map-blips">${homeMapBlips.map(b=>`<span class="home-map-blip ${mapClass(b.category)}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%">${mapIconSvg(b.category,'home-blip-icon')}</span>`).join('')}</div>
+          <div class="home-map-blips">${homeMapBlips.map(b=>`<span class="home-map-blip ${mapClass(b.category)}" data-category="${escapeHtml(b.category||'landmark')}" data-map-id="${escapeHtml(b.id||'')}" title="${escapeHtml(b.label||'')}" style="left:${Number(b.x)||50}%;top:${Number(b.y)||50}%">${mapIconSvg(b.category,'home-blip-icon')}</span>`).join('')}</div>
         </div>
         <div class="map-preview-overlay"></div>
         <div class="map-preview-ui"><span>+</span><span>−</span><span>⌖</span></div>

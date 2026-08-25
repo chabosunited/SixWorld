@@ -1772,3 +1772,45 @@ body::after{display:none!important}
   .admin-map-filter-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}
   .admin-map-filter-chip{flex:none}
 }
+
+
+/* ===== SIXWORLD v26: Home map shows the complete blip layer =====
+   The public Home preview now renders every saved map location.
+   Markers are smaller than on the full Map page so dense Vice City
+   clusters remain readable inside the compact Home card.
+*/
+.home-map-blip{
+  width:18px!important;
+  height:18px!important;
+  border-width:1px!important;
+  box-shadow:0 3px 8px rgba(0,0,0,.40),0 0 0 2px rgba(255,255,255,.025)!important;
+}
+.home-map-blip .map-custom-icon{
+  width:9px!important;
+  height:9px!important;
+}
+.home-map-blips{
+  pointer-events:none;
+}
+
+@media (min-width:1501px){
+  .home-map-blip{
+    width:20px!important;
+    height:20px!important;
+  }
+  .home-map-blip .map-custom-icon{
+    width:10px!important;
+    height:10px!important;
+  }
+}
+
+@media (max-width:920px){
+  .home-map-blip{
+    width:16px!important;
+    height:16px!important;
+  }
+  .home-map-blip .map-custom-icon{
+    width:8px!important;
+    height:8px!important;
+  }
+}
