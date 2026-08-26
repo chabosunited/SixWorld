@@ -24,7 +24,7 @@ Diese Version baut auf dem funktionierenden v8 Admin-Editor auf und enthält das
 
 ## Neu in v9
 
-- dunklerer Website-Hintergrund
+- dunklerer Website-Hintergrund.
 - dünne weiß/silberne Rahmen um Hero, Panels, Cards und Map-Elemente
 - Datums-/Meta-Untertexte in Pink/Hell-Lila
 - Footer Counter: `VISITORS: X (Y HITS)`
