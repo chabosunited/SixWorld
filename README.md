@@ -1,6 +1,6 @@
 # SIXWORLD v13
 
-Compact desktop map update.
+Compact desktop map update
 
 - Shorter interactive map viewport on desktop
 - Side panels no longer force full viewport height
