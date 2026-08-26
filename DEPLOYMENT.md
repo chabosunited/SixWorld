@@ -244,3 +244,26 @@ npx wrangler d1 execute sixworld-db --remote --file=migration_v19.sql
 ```
 
 No separate user-account service is used. Guest nicknames are stored only in the visitor's browser and attached to public comments in D1.
+
+
+## v27 — GitHub content backup
+
+To enable the automatic GitHub backup in **Admin Panel → Settings → Backups & Static Fallback**:
+
+1. Create a GitHub fine-grained Personal Access Token.
+2. Limit repository access to `chabosunited/SixWorld`.
+3. Give it **Contents: Read and write** permission.
+4. Cloudflare → Workers & Pages → sixworld → Settings → Variables and secrets → Add.
+5. Name: `GITHUB_TOKEN`
+6. Type: Secret
+7. Paste the token as its value.
+8. Save and deploy once.
+
+Optional environment variables (not required because v27 has sensible defaults):
+- `GITHUB_REPO=chabosunited/SixWorld`
+- `GITHUB_BRANCH=main`
+- `GITHUB_CONTENT_PATH=data/content.json`
+
+Security:
+- Never put the GitHub token inside `wrangler.toml`, JavaScript, GitHub files, or the browser.
+- The token is used only inside the authenticated server-side `/api/admin/github-backup` Pages Function.

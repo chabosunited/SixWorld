@@ -95,6 +95,7 @@
     draft.settings.accent2 ||= '#42e6ee';
     draft.settings.backgroundImage ||= 'assets/site-background.png';
     draft.settings.defaultLanguage ||= 'en';
+    draft.settings.githubAutoBackup = draft.settings.githubAutoBackup !== false;
     draft.feeds ||= {};
     draft.feeds.enabled = draft.feeds.enabled !== false;
     draft.feeds.subreddits = Array.isArray(draft.feeds.subreddits) && draft.feeds.subreddits.length
@@ -104,6 +105,59 @@
     draft.feeds.maxItems = Math.max(1, Number(draft.feeds.maxItems)||10);
     delete draft.feeds.subreddit;
     draft.access ||= {secretText:'sw_6.0.22',secretPage:'map',demoUser:'admin',demoPass:'sixworld'};
+  }
+
+  function downloadContentBackup(){
+    normalizeDraft();
+    const text=JSON.stringify(draft,null,2)+'\n';
+    const blob=new Blob([text],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`sixworld-content-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
+    window.SIXWORLD.toast('Local content backup downloaded.');
+  }
+
+  async function getGithubBackupStatus(){
+    if(!window.SIXWORLD.backend) return {configured:false,local:true};
+    try{
+      const r=await fetch('/api/admin/github-backup',{credentials:'same-origin',cache:'no-store'});
+      const d=await r.json().catch(()=>null);
+      return d||{configured:false};
+    }catch(e){
+      return {configured:false,error:'Backup status unavailable.'};
+    }
+  }
+
+  async function backupDraftToGithub({silent=false}={}){
+    if(!window.SIXWORLD.backend){
+      if(!silent) window.SIXWORLD.toast('GitHub backup is available on the deployed admin only.');
+      return {ok:false,local:true};
+    }
+    try{
+      const r=await fetch('/api/admin/github-backup',{
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'content-type':'application/json','cache-control':'no-cache'},
+        body:'{}'
+      });
+      const d=await r.json().catch(()=>null);
+      if(!r.ok){
+        if(!silent) window.SIXWORLD.toast(d?.hint || d?.error || 'GitHub backup failed.');
+        return {ok:false,...(d||{})};
+      }
+      if(!silent) window.SIXWORLD.toast(d?.skipped?'GitHub backup already up to date.':'GitHub content backup updated.');
+      return {ok:true,...(d||{})};
+    }catch(e){
+      if(!silent) window.SIXWORLD.toast('GitHub backup unavailable.');
+      return {ok:false,error:String(e?.message||e)};
+    }
   }
 
   async function saveDraft(successMessage='Changes saved.'){
@@ -133,9 +187,27 @@
         localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
       }
 
+      // Always keep a current browser-local snapshot on the admin device.
+      // loadContent() already knows how to use this if the API is unavailable.
+      localStorage.setItem(window.SIXWORLD.FALLBACK_KEY,JSON.stringify(draft));
+
       window.SIXWORLD.content=clone(draft);
       window.SIXWORLD.renderAll();
-      window.SIXWORLD.toast(successMessage);
+
+      let backupResult=null;
+      if(window.SIXWORLD.backend && draft.settings?.githubAutoBackup!==false){
+        backupResult=await backupDraftToGithub({silent:true});
+      }
+
+      if(backupResult?.ok){
+        window.SIXWORLD.toast(backupResult.skipped
+          ? `${successMessage} · GitHub backup current.`
+          : `${successMessage} · GitHub backup updated.`);
+      }else if(window.SIXWORLD.backend && draft.settings?.githubAutoBackup!==false){
+        window.SIXWORLD.toast(`${successMessage} · GitHub backup pending/not configured.`);
+      }else{
+        window.SIXWORLD.toast(successMessage);
+      }
       return true;
     }catch(err){
       console.error('SIXWORLD admin save error:',err);
@@ -761,14 +833,83 @@
         <div class="admin-field full"><label>REDDIT FEEDS (one per line or comma-separated)</label><textarea id="feedSubreddits" rows="4">${window.SIXWORLD.escapeHtml((Array.isArray(f.subreddits)&&f.subreddits.length?f.subreddits:['GTA6unmoderated','GTA6_NEW']).join('\n'))}</textarea></div>
         <div class="admin-field"><label>X USERNAME</label><input id="feedXUser" value="${window.SIXWORLD.escapeHtml(f.xUser||'RockstarGames')}"></div>
         <div class="admin-field"><label>MAX LIVE ITEMS</label><input id="feedMaxItems" type="number" min="1" max="30" value="${window.SIXWORLD.escapeHtml(String(f.maxItems||10))}"></div>
-      </div><div class="codebox" style="margin-top:16px"><b>Active Reddit feeds:</b> r/GTA6unmoderated and r/GTA6_NEW. New posts are loaded automatically on the News page. Add or remove subreddits here at any time. The serverless feed is cached briefly to avoid unnecessary Reddit requests.</div></section>`;
-    ['setName','setSearch','setAccent','setAccent2','setBackground','setDefaultLanguage'].forEach(id=>$('#'+id).oninput=()=>{
-      draft.settings={...draft.settings,siteName:$('#setName').value,searchPlaceholder:$('#setSearch').value,accent:$('#setAccent').value,accent2:$('#setAccent2').value,backgroundImage:$('#setBackground').value,defaultLanguage:$('#setDefaultLanguage').value};
+      </div><div class="codebox" style="margin-top:16px"><b>Active Reddit feeds:</b> r/GTA6unmoderated and r/GTA6_NEW. New posts are loaded automatically on the News page. Add or remove subreddits here at any time. The serverless feed is cached briefly to avoid unnecessary Reddit requests.</div></section>
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <div>
+            <h3>Backups & Static Fallback</h3>
+            <p class="inline-note">D1 remains the live source of truth. SIXWORLD can additionally keep a browser-local snapshot and synchronize the current D1 document to <b>data/content.json</b> in GitHub.</p>
+          </div>
+          <span class="backup-status-pill" id="githubBackupStatus">CHECKING…</span>
+        </div>
+        <div class="admin-form">
+          <div class="admin-field"><label>AUTO GITHUB BACKUP AFTER SAVES</label><select id="githubAutoBackup"><option value="true" ${s.githubAutoBackup!==false?'selected':''}>true</option><option value="false" ${s.githubAutoBackup===false?'selected':''}>false</option></select></div>
+          <div class="admin-field full">
+            <label>BACKUP TARGET</label>
+            <div class="codebox" id="githubBackupTarget">Checking GitHub backup configuration…</div>
+          </div>
+        </div>
+        <div class="backup-actions">
+          <button class="solid-btn" type="button" id="githubBackupNow">BACKUP TO GITHUB NOW</button>
+          <button class="ghost-btn" type="button" id="downloadContentBackup">DOWNLOAD CONTENT.JSON BACKUP</button>
+        </div>
+        <div class="codebox backup-explainer">
+          <b>Recovery layers:</b><br>
+          1. D1 = live content database.<br>
+          2. Browser snapshot = automatically updated on this admin device after every successful save.<br>
+          3. GitHub <b>data/content.json</b> = static fallback for visitors if the Cloudflare API becomes unavailable.<br>
+          4. Download button = a physical JSON backup you can keep on your PC.
+        </div>
+      </section>`;
+    ['setName','setSearch','setAccent','setAccent2','setBackground','setDefaultLanguage','githubAutoBackup'].forEach(id=>$('#'+id).oninput=()=>{
+      draft.settings={
+        ...draft.settings,
+        siteName:$('#setName').value,
+        searchPlaceholder:$('#setSearch').value,
+        accent:$('#setAccent').value,
+        accent2:$('#setAccent2').value,
+        backgroundImage:$('#setBackground').value,
+        defaultLanguage:$('#setDefaultLanguage').value,
+        githubAutoBackup:$('#githubAutoBackup')?.value!=='false'
+      };
     });
     ['feedEnabled','feedSubreddits','feedXUser','feedMaxItems'].forEach(id=>$('#'+id).oninput=()=>{
       const subreddits=$('#feedSubreddits').value.split(/[\n,]+/).map(x=>x.trim().replace(/^r\//i,'')).filter(Boolean);
       draft.feeds={enabled:$('#feedEnabled').value==='true',subreddits:subreddits.length?subreddits:['GTA6unmoderated','GTA6_NEW'],xUser:$('#feedXUser').value,maxItems:+$('#feedMaxItems').value||10};
     });
+
+    $('#downloadContentBackup').onclick=downloadContentBackup;
+    $('#githubBackupNow').onclick=async()=>{
+      const btn=$('#githubBackupNow');
+      const old=btn.textContent;
+      btn.disabled=true;btn.textContent='BACKING UP…';
+      const result=await backupDraftToGithub({silent:false});
+      btn.disabled=false;btn.textContent=old;
+      if(result?.ok) refreshGithubBackupStatus();
+    };
+
+    async function refreshGithubBackupStatus(){
+      const status=$('#githubBackupStatus');
+      const target=$('#githubBackupTarget');
+      if(!status||!target)return;
+      const info=await getGithubBackupStatus();
+      if(!window.SIXWORLD.backend){
+        status.textContent='LOCAL PREVIEW';
+        status.className='backup-status-pill neutral';
+        target.innerHTML='GitHub synchronization becomes available after deployment and admin login.';
+        return;
+      }
+      if(info?.configured){
+        status.textContent=info.ok===false?'GITHUB ERROR':'GITHUB READY';
+        status.className=`backup-status-pill ${info.ok===false?'error':'ready'}`;
+        target.innerHTML=`<b>${window.SIXWORLD.escapeHtml(info.repo||'')}</b> · branch <b>${window.SIXWORLD.escapeHtml(info.branch||'main')}</b> · <b>${window.SIXWORLD.escapeHtml(info.path||'data/content.json')}</b>${info.error?`<br>${window.SIXWORLD.escapeHtml(info.error)}`:''}`;
+      }else{
+        status.textContent='TOKEN REQUIRED';
+        status.className='backup-status-pill warning';
+        target.innerHTML='Add a Cloudflare secret named <b>GITHUB_TOKEN</b>. Recommended: a fine-grained GitHub token restricted to the SixWorld repository with <b>Contents: Read and write</b>.';
+      }
+    }
+    refreshGithubBackupStatus();
   }
 
   function renderAccess(){

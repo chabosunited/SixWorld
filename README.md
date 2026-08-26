@@ -1,6 +1,6 @@
 # SIXWORLD v13
 
-Compact desktop map update
+Compact desktop map update.
 
 - Shorter interactive map viewport on desktop
 - Side panels no longer force full viewport height
@@ -267,3 +267,24 @@ v26:
 - keeps the same X/Y coordinates as the full Interactive Map;
 - uses smaller proportional markers in the compact Home preview to reduce overlap;
 - preserves the full Map page and Admin Map behavior unchanged.
+
+
+## v27 — D1 + Browser + GitHub + Download Backups
+
+SIXWORLD now supports layered content backups from the Admin Panel.
+
+After a successful admin content save:
+- D1 remains the live source of truth;
+- the latest content is also written to the admin browser's local storage;
+- when enabled/configured, the D1 document is synchronized to GitHub `data/content.json`.
+
+Admin Panel → Settings now includes:
+- automatic GitHub backup on/off;
+- GitHub backup status;
+- `BACKUP TO GITHUB NOW`;
+- `DOWNLOAD CONTENT.JSON BACKUP`.
+
+The public app already falls back to `data/content.json` when `/api/content` cannot return usable JSON, so keeping this GitHub file synchronized provides a much newer static emergency fallback.
+
+Only one new Cloudflare secret is required:
+`GITHUB_TOKEN`

@@ -1814,3 +1814,45 @@ body::after{display:none!important}
     height:8px!important;
   }
 }
+
+
+/* ===== SIXWORLD v27: Admin backup center ===== */
+.backup-status-pill{
+  flex:none;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  color:#aebccd;
+  background:rgba(255,255,255,.035);
+  font:800 10px/1 var(--font-display);
+  letter-spacing:.05em;
+}
+.backup-status-pill.ready{
+  color:#8ff9df;
+  border-color:rgba(78,231,190,.28);
+  background:rgba(78,231,190,.07);
+}
+.backup-status-pill.warning{
+  color:#ffd28d;
+  border-color:rgba(255,188,83,.28);
+  background:rgba(255,188,83,.07);
+}
+.backup-status-pill.error{
+  color:#ff9ba9;
+  border-color:rgba(255,83,110,.3);
+  background:rgba(255,83,110,.08);
+}
+.backup-status-pill.neutral{color:#9eafc2}
+.backup-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-top:16px;
+}
+.backup-explainer{
+  margin-top:16px;
+  line-height:1.7;
+}
+@media(max-width:720px){
+  .backup-actions>*{width:100%}
+}
