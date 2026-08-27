@@ -62,6 +62,15 @@
   ],
   "leaks": [
     {
+      "id": "l_u10b7x9",
+      "title": "GTA 6 Full Netflix Extended Look",
+      "date": "Aug 27, 2026",
+      "duration": "26:50",
+      "source": "Community",
+      "thumb": "assets/gta-6-trailer-2.jpg",
+      "video": "https://storage.to/Rkhd5L7Ke"
+    },
+    {
       "id": "l_bdi3ggp",
       "title": "Prologue (Spoiler!) - Leak (2026)",
       "date": "Aug 26, 2026",
@@ -1921,25 +1930,6 @@
         "source": "GTA VI Mapping Community / State of Leonida",
         "status": "approximate",
         "recent": false
-      },
-      {
-        "id": "loc_whr2dtj",
-        "x": 50,
-        "y": 57.6,
-        "label": "New Location",
-        "category": "landmark",
-        "symbol": "★",
-        "image": "assets/nighttimepink.webp",
-        "region": "Leonida",
-        "district": "",
-        "poiCount": 0,
-        "discovered": "",
-        "tags": [
-          "LANDMARK"
-        ],
-        "description": "",
-        "link": "#map",
-        "featured": false
       }
     ],
     "logo": "assets/logo/Leonidaloga.png",
