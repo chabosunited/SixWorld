@@ -1921,6 +1921,25 @@
         "source": "GTA VI Mapping Community / State of Leonida",
         "status": "approximate",
         "recent": false
+      },
+      {
+        "id": "loc_whr2dtj",
+        "x": 50,
+        "y": 57.6,
+        "label": "New Location",
+        "category": "landmark",
+        "symbol": "★",
+        "image": "assets/nighttimepink.webp",
+        "region": "Leonida",
+        "district": "",
+        "poiCount": 0,
+        "discovered": "",
+        "tags": [
+          "LANDMARK"
+        ],
+        "description": "",
+        "link": "#map",
+        "featured": false
       }
     ],
     "logo": "assets/logo/Leonidaloga.png",
