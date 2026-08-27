@@ -1935,11 +1935,11 @@
   },
   "feeds": {
     "enabled": true,
-    "xUser": "RockstarGames",
-    "maxItems": 6,
     "subreddits": [
-      "GTA6unmoderated",
+      "GTA6slightlymoderated",
       "GTA6_NEW"
-    ]
+    ],
+    "xUser": "RockstarGames",
+    "maxItems": 6
   }
 }
